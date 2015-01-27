@@ -48,3 +48,6 @@ obj-$(CONFIG_ARCH_KEYSTONE)		+= timer-keystone.o
 obj-$(CONFIG_ARCH_INTEGRATOR_AP)	+= timer-integrator-ap.o
 obj-$(CONFIG_CLKSRC_VERSATILE)		+= versatile.o
 obj-$(CONFIG_CLKSRC_MIPS_GIC)		+= mips-gic-timer.o
+obj-$(CONFIG_H8300_TMR8)		+= h8300_timer8.o
+obj-$(CONFIG_H8300_TMR16)		+= h8300_timer16.o
+obj-$(CONFIG_H8300_TPU)			+= h8300_tpu.o
