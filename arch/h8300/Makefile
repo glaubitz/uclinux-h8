@@ -24,7 +24,7 @@ LDFLAGS += $(ldflags-y)
 
 CROSS_COMPILE := h8300-unknown-linux-
 
-core-y	+= arch/$(ARCH)/kernel/ arch/$(ARCH)/mm/
+core-y	+= arch/$(ARCH)/kernel/ arch/$(ARCH)/mm/ arch/h8300/boot/dts/
 ifneq '$(CONFIG_H8300_BUILTIN_DTB)' '""'
 core-y += arch/h8300/boot/dts/
 endif
