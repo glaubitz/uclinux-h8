@@ -1,0 +1,20 @@
+* H8S Interrupt controler
+
+Required properties:
+
+- compatible: has to be "renesas,h8s-intc", "renesas,h8300-intc" as fallback.
+- #interrupt-cells: has to be <1>: an interrupt index and flags, as defined in
+  interrupts.txt in this directory
+
+Optional properties:
+
+- any properties, listed in interrupts.txt, and any standard resource allocation
+  properties
+
+Example:
+
+	h8intc: intc@0 {
+		compatible = "renesas,h8s-intc", "renesas,h8300-intc";
+		#interrupt-cells = <1>;
+		interrupt-controller;
+	};
