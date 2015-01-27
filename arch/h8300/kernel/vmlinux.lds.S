@@ -49,7 +49,7 @@ SECTIONS
 	RW_DATA_SECTION(0,0,0)
 #if defined(CONFIG_ROMKERNEL)
 #undef ADDR
-#endif	
+#endif
 	. = ALIGN(0x4) ;
 	__init_begin = .;
 	INIT_TEXT_SECTION(4)

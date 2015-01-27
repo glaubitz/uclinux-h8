@@ -1,0 +1,23 @@
+menu "Kernel hacking"
+
+source "lib/Kconfig.debug"
+
+config FULLDEBUG
+	bool "Full Symbolic/Source Debugging support"
+	help
+	  Enable debugging symbols on kernel build.
+
+config HIGHPROFILE
+	bool "Use fast second timer for profiling"
+	help
+	  Use a fast secondary clock to produce profiling information.
+
+config NO_KERNEL_MSG
+	bool "Suppress Kernel BUG Messages"
+	help
+	  Do not output any debug BUG messages within the kernel.
+
+config SH_STANDARD_BIOS
+       def_bool n
+
+endmenu
