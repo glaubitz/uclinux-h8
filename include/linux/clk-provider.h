@@ -635,6 +635,18 @@ static inline void clk_writel(u32 val, u32 __iomem *reg)
 	iowrite32be(val, reg);
 }
 
+#elif IS_ENABLED(CONFIG_H8300)
+
+static inline u32 clk_readl(u32 __iomem *reg)
+{
+	return readb(reg);
+}
+
+static inline void clk_writel(u32 val, u32 __iomem *reg)
+{
+	writeb(val, reg);
+}
+
 #else	/* platform dependent I/O accessors */
 
 static inline u32 clk_readl(u32 __iomem *reg)
