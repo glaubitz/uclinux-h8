@@ -120,7 +120,7 @@ static int regs_set(struct task_struct *target,
 				 &regs, 0, sizeof(regs));
 	if (ret)
 		return ret;
-	
+
 	/* write back to pt_regs */
 	for (reg = (long *)&regs, r = 0; r < ARRAY_SIZE(register_offset); r++)
 		h8300_put_reg(target, r, *reg++);

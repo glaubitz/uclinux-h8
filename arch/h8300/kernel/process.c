@@ -84,13 +84,14 @@ void show_regs(struct pt_regs *regs)
 {
 	show_regs_print_info(KERN_DEFAULT);
 
-	printk("\nPC: %08lx  Status: %02x",
+	pr_notice("\n");
+	pr_notice("PC: %08lx  Status: %02x\n",
 	       regs->pc, regs->ccr);
-	printk("\nORIG_ER0: %08lx ER0: %08lx ER1: %08lx",
+	pr_notice("ORIG_ER0: %08lx ER0: %08lx ER1: %08lx\n",
 	       regs->orig_er0, regs->er0, regs->er1);
-	printk("\nER2: %08lx ER3: %08lx ER4: %08lx ER5: %08lx",
+	pr_notice("ER2: %08lx ER3: %08lx ER4: %08lx ER5: %08lx\n",
 	       regs->er2, regs->er3, regs->er4, regs->er5);
-	printk("\nER6' %08lx ", regs->er6);
+	pr_notice("ER6' %08lx ", regs->er6);
 	if (user_mode(regs))
 		printk("USP: %08lx\n", rdusp());
 	else

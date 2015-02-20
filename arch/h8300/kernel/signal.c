@@ -81,7 +81,8 @@ restore_sigcontext(struct sigcontext *usc, int *pd0)
 	/* Always make any pending restarted system calls return -EINTR */
 	current_thread_info()->restart_block.fn = do_no_restart_syscall;
 
-#define COPY(r) err |= __get_user(regs->r, &usc->sc_##r)    /* restore passed registers */
+	/* restore passed registers */
+#define COPY(r)  do { err |= get_user(regs->r, &usc->sc_##r); } while (0)
 	COPY(er1);
 	COPY(er2);
 	COPY(er3);
@@ -169,8 +170,6 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 {
 	struct rt_sigframe *frame;
 	int err = 0;
-	int usig;
-	int sig = ksig->sig;
 	unsigned char *ret;
 
 	frame = get_sigframe(&ksig->ka, regs, sizeof(*frame));
@@ -178,21 +177,8 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
 		return -EFAULT;
 
-	usig = current_thread_info()->exec_domain
-		&& current_thread_info()->exec_domain->signal_invmap
-		&& sig < 32
-		? current_thread_info()->exec_domain->signal_invmap[sig]
-		: sig;
-
-	err |= __put_user(usig, &frame->sig);
-	if (err)
-		return -EFAULT;
-
-	err |= __put_user(&frame->info, &frame->pinfo);
-	err |= __put_user(&frame->uc, &frame->puc);
-	err |= copy_siginfo_to_user(&frame->info, &ksig->info);
-	if (err)
-		return -EFAULT;
+	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
+		err |= copy_siginfo_to_user(&frame->info, &ksig->info);
 
 	/* Create the ucontext.  */
 	err |= __put_user(0, &frame->uc.uc_flags);
@@ -222,11 +208,7 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	/* Set up registers for signal handler */
 	wrusp((unsigned long) frame);
 	regs->pc  = (unsigned long) ksig->ka.sa.sa_handler;
-	regs->er0 = (current_thread_info()->exec_domain
-		     && current_thread_info()->exec_domain->signal_invmap
-		     && sig < 32
-		     ? current_thread_info()->exec_domain->signal_invmap[sig]
-		     : sig);
+	regs->er0 = ksig->sig;
 	regs->er1 = (unsigned long)&(frame->info);
 	regs->er2 = (unsigned long)&frame->uc;
 	regs->er5 = current->mm->start_data;	/* GOT base */
