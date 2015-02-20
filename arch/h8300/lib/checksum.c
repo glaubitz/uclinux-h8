@@ -67,7 +67,7 @@ static unsigned long do_csum(const unsigned char *buff, int len)
 		count >>= 1;		/* nr of 32-bit words.. */
 		if (count) {
 			unsigned long carry = 0;
-			
+
 			do {
 				unsigned long w = *(unsigned long *) buff;
 
