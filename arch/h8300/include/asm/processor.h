@@ -87,7 +87,7 @@ do {								\
 	(_regs)->pc = (_pc);					\
 	(_regs)->ccr = 0x00;	   /* clear all flags */	\
 	(_regs)->er5 = current->mm->start_data;	/* GOT base */	\
-	(_regs)->sp =((unsigned long)(_usp)) - sizeof(unsigned long)*3; \
+	(_regs)->sp = ((unsigned long)(_usp)) - sizeof(unsigned long) * 3; \
 } while (0)
 #endif
 #if defined(CONFIG_CPU_H8S)
@@ -98,7 +98,7 @@ do {								\
 	(_regs)->exr = 0x78;	   /* enable all interrupts */	\
 	(_regs)->er5 = current->mm->start_data;	/* GOT base */	\
 	/* 14 = space for retaddr(4), vector(4), er0(4) and exr(2) on stack */ \
-	(_regs)->sp =((unsigned long)(_usp)) - 14;		\
+	(_regs)->sp = ((unsigned long)(_usp)) - 14;		\
 } while (0)
 #endif
 

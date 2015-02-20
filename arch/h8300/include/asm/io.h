@@ -5,98 +5,37 @@
 
 #include <linux/types.h>
 
-/*
- * These are for ISA/PCI shared memory _only_ and should never be used
- * on any other type of memory, including Zorro memory. They are meant to
- * access the bus in the bus byte order which is little-endian!.
- *
- * readX/writeX() are used to access memory mapped devices. On some
- * architectures the memory mapped IO stuff needs to be accessed
- * differently. On the m68k architecture, we just read/write the
- * memory location directly.
- */
-/* ++roman: The assignments to temp. vars avoid that gcc sometimes generates
- * two accesses to memory, which may be undesirable for some devices.
- */
+#define __raw_readb(addr) ({ u8 __v = *(volatile u8 *)(addr); __v; })
 
-/*
- * swap functions are sometimes needed to interface little-endian hardware
- */
+#define __raw_readw(addr) ({ u16 __v = *(volatile u16 *)(addr); __v; })
 
-static inline unsigned short _swapw(volatile unsigned short v)
-{
-#ifndef H8300_IO_NOSWAP
-	unsigned short r;
+#define __raw_readl(addr) ({ u32 __v = *(volatile u32 *)(addr); __v; })
 
-	__asm__("xor.b %w0,%x0\n\t"
-		"xor.b %x0,%w0\n\t"
-		"xor.b %w0,%x0"
-		: "=r"(r)
-		: "0"(v));
-	return r;
-#else
-	return v;
-#endif
-}
+#define __raw_writeb(b, addr) (void)((*(volatile u8 *)(addr)) = (b))
 
-static inline unsigned long _swapl(volatile unsigned long v)
-{
-#ifndef H8300_IO_NOSWAP
-	unsigned long r;
+#define __raw_writew(b, addr) (void)((*(volatile u16 *)(addr)) = (b))
 
-	__asm__("xor.b %w0,%x0\n\t"
-		"xor.b %x0,%w0\n\t"
-		"xor.b %w0,%x0\n\t"
-		"xor.w %e0,%f0\n\t"
-		"xor.w %f0,%e0\n\t"
-		"xor.w %e0,%f0\n\t"
-		"xor.b %w0,%x0\n\t"
-		"xor.b %x0,%w0\n\t"
-		"xor.b %w0,%x0"
-		: "=r"(r)
-		: "0"(v));
-	return r;
-#else
-	return v;
-#endif
-}
+#define __raw_writel(b, addr) (void)((*(volatile u32 *)(addr)) = (b))
 
-#define readb(addr) \
-	({ u8 __v = *(volatile u8 *)((uintptr_t)(addr) & 0x00ffffff); __v; })
-
-#define readw(addr) \
-	({ u16 __v = *(volatile u16 *)((uintptr_t)(addr) & 0x00ffffff); __v; })
-
-#define readl(addr) \
-	({ u32 __v = *(volatile u32 *)((uintptr_t)(addr) & 0x00ffffff); __v; })
-
-#define writeb(b, addr) (void)((*(volatile u8 *) \
-				((uintptr_t)(addr) & 0x00ffffff)) = (b))
-
-#define writew(b, addr) (void)((*(volatile u16 *) \
-				((uintptr_t)(addr) & 0x00ffffff)) = (b))
-
-#define writel(b, addr) (void)((*(volatile u32 *)			\
-				((uintptr_t)(addr) & 0x00ffffff)) = (b))
-
-#define readb_relaxed(addr) readb(addr)
-#define readw_relaxed(addr) readw(addr)
-#define readl_relaxed(addr) readl(addr)
-#define writeb_relaxed(b, addr) writeb(b, addr)
-#define writew_relaxed(b, addr) writew(b, addr)
-#define writel_relaxed(b, addr) writel(b, addr)
-
-#define __raw_readb readb
-#define __raw_readw readw
-#define __raw_readl readl
-#define __raw_writeb writeb
-#define __raw_writew writew
-#define __raw_writel writel
+#define readb __raw_readb
+#define readw __raw_readw
+#define readl __raw_readl
+#define writeb __raw_writeb
+#define writew __raw_writew
+#define writel __raw_writel
 
 #if defined(CONFIG_H83069)
 #define ABWCR  0xFEE020
 #elif defined(CONFIG_H8S2678)
 #define ABWCR  0xFFFEC0
+#endif
+
+#ifdef CONFIG_H8300_BUBSSWAP
+#define _swapw(x) __builtin_bswap16(x)
+#define _swapl(x) __builtin_bswap32(x)
+#else
+#define _swapw(x) (x)
+#define _swapl(x) (x)
 #endif
 
 static inline int h8300_buswidth(unsigned int addr)
@@ -130,11 +69,14 @@ static inline void io_outsw(unsigned int addr, const void *buf, int len)
 
 static inline void io_outsl(unsigned int addr, const void *buf, int len)
 {
-	volatile unsigned long *ap = (volatile unsigned long *) addr;
-	unsigned long *bp = (unsigned long *) buf;
+	volatile unsigned short *ap = (volatile unsigned short *) addr;
+	unsigned short *bp = (unsigned short *) buf;
 
-	while (len--)
-		*ap = _swapl(*bp++);
+	while (len--) {
+		*(ap + 1) = _swapw(*(bp + 0));
+		*(ap + 0) = _swapw(*(bp + 1));
+		bp += 2;
+	}
 }
 
 static inline void io_outsw_noswap(unsigned int addr, const void *buf, int len)
@@ -183,11 +125,14 @@ static inline void io_insw(unsigned int addr, void *buf, int len)
 
 static inline void io_insl(unsigned int addr, void *buf, int len)
 {
-	volatile unsigned long *ap = (volatile unsigned long *) addr;
-	unsigned long *bp = (unsigned long *) buf;
+	volatile unsigned short *ap = (volatile unsigned short *) addr;
+	unsigned short *bp = (unsigned short *) buf;
 
-	while (len--)
-		*bp++ = _swapl(*ap);
+	while (len--) {
+		*(bp + 0) = _swapw(*(ap + 1));
+		*(bp + 1) = _swapw(*(ap + 0));
+		bp += 2;
+	}
 }
 
 static inline void io_insw_noswap(unsigned int addr, void *buf, int len)
@@ -220,14 +165,17 @@ static inline void io_insl_noswap(unsigned int addr, void *buf, int len)
 #define mmiowb()
 
 #define inb(addr)    ((h8300_buswidth(addr)) ? \
-		      readw((addr) & ~1) & 0xff:readb(addr))
-#define inw(addr)    _swapw(readw(addr))
-#define inl(addr)    _swapl(readl(addr))
-#define outb(x, addr) ((void)((h8300_buswidth(addr) && \
-			       ((addr) & 1)) ? \
-			      writew(x, (addr) & ~1) : writeb(x, addr)))
-#define outw(x, addr) ((void) writew(_swapw(x), addr))
-#define outl(x, addr) ((void) writel(_swapl(x), addr))
+		      __raw_readw((addr) & ~1) & 0xff:__raw_readb(addr))
+#define inw(addr)    _swapw(__raw_readw(addr))
+#define inl(addr)    (_swapw(__raw_readw(addr) << 16 | \
+			     _swapw(__raw_readw(addr + 2))))
+#define outb(x, addr) ((void)((h8300_buswidth(addr) && ((addr) & 1)) ? \
+			      __raw_writeb(x, (addr) & ~1) : \
+			      __raw_writeb(x, addr)))
+#define outw(x, addr) ((void) __raw_writew(_swapw(x), addr))
+#define outl(x, addr) \
+		((void) __raw_writel(_swapw(x & 0xffff) | \
+				      _swapw(x >> 16) << 16, addr))
 
 #define inb_p(addr)    inb(addr)
 #define inw_p(addr)    inw(addr)
@@ -252,20 +200,14 @@ static inline void io_insl_noswap(unsigned int addr, void *buf, int len)
 #define iowrite16(v, a)		__raw_writew((v), (a))
 #define iowrite32(v, a)		__raw_writel((v), (a))
 
-#define ioread8_rep(p,d,c)	insb(p,d,c)
-#define ioread16_rep(p,d,c)	insw(p,d,c)
-#define ioread32_rep(p,d,c)	insl(p,d,c)
-#define iowrite8_rep(p,s,c)	outsb(p,s,c)
-#define iowrite16_rep(p,s,c)	outsw(p,s,c)
-#define iowrite32_rep(p,s,c)	outsl(p,s,c)
-
-#define ioread16be(a)		__raw_readw((a))
-#define ioread32be(a)		__raw_readl((a))
-#define iowrite16be(v, a)	__raw_writew((v), (a))
-#define iowrite32be(v, a)	__raw_writel((v), (a))
+#define ioread8_rep(p, d, c)	insb(p, d, c)
+#define ioread16_rep(p, d, c)	insw(p, d, c)
+#define ioread32_rep(p, d, c)	insl(p, d, c)
+#define iowrite8_rep(p, s, c)	outsb(p, s, c)
+#define iowrite16_rep(p, s, c)	outsw(p, s, c)
+#define iowrite32_rep(p, s, c)	outsl(p, s, c)
 
 #define IO_SPACE_LIMIT 0xffffff
-
 
 /* Values for nocacheflag and cmode */
 #define IOMAP_FULL_CACHING		0
@@ -335,17 +277,17 @@ static inline void ctrl_outl(unsigned long b, unsigned long addr)
 static inline void ctrl_bclr(int b, unsigned long addr)
 {
 	if (__builtin_constant_p(b))
-		__asm__("bclr %1,@%o0:8" : : "i"(addr & 0xff), "i"(b));
+		__asm__("bclr %1,%0" : : "WU"(addr), "i"(b));
 	else
-		__asm__("bclr %w1,@%o0:8" : : "i"(addr & 0xff), "r"(b));
+		__asm__("bclr %w1,%0" : : "WU"(addr), "r"(b));
 }
 
 static inline void ctrl_bset(int b, unsigned long addr)
 {
 	if (__builtin_constant_p(b))
-		__asm__("bset %1,@%o0:8" : : "i"(addr & 0xff), "i"(b));
+		__asm__("bset %1,%0" : : "WU"(addr), "i"(b));
 	else
-		__asm__("bset %w1,@%o0:8" : : "i"(addr & 0xff), "r"(b));
+		__asm__("bset %w1,%0" : : "WU"(addr), "r"(b));
 }
 
 /*

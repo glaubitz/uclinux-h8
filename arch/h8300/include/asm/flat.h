@@ -22,6 +22,6 @@
 	(get_unaligned(rp) & (((flags) & FLAT_FLAG_GOTPIC) ? \
 			      0xffffffff : 0x00ffffff))
 #define flat_put_addr_at_rp(rp, addr, rel) \
-	put_unaligned (((*(char *)(rp)) << 24) | ((addr) & 0x00ffffff), (rp))
+	put_unaligned(((*(char *)(rp)) << 24) | ((addr) & 0x00ffffff), (rp))
 
 #endif /* __H8300_FLAT_H__ */

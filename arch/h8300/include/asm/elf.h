@@ -32,7 +32,7 @@ typedef unsigned long elf_fpregset_t;
 #define ELF_CORE_EFLAGS 0x820000
 #endif
 
-#define ELF_PLAT_INIT(_r)	(_r)->er1 = 0
+#define ELF_PLAT_INIT(_r) do { (_r)->er1 = 0; } while (0)
 
 #define ELF_EXEC_PAGESIZE	4096
 

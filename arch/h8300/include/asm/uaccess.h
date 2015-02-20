@@ -57,9 +57,9 @@ extern unsigned long search_exception_table(unsigned long);
 	typeof(*(ptr)) __pu_val = (x);			\
 	switch (sizeof(*(ptr))) {			\
 	case 1:						\
-	/* failthrough */ \
+	/* falll through */ \
 	case 2:						\
-	/* failthrough */ \
+	/* fall through */ \
 	case 4:						\
 		*(ptr) = x;				\
 		break;					\
@@ -72,9 +72,6 @@ extern unsigned long search_exception_table(unsigned long);
 	}						\
 	__pu_err;					\
 })
-#define __put_user_asm(x, addr, err, size)	\
-do {						\
-} while (0)
 
 #define __put_user(x, ptr) put_user(x, ptr)
 
@@ -129,12 +126,6 @@ extern int __get_user_bad(void);
 #define __copy_to_user(to, from, n) copy_to_user(to, from, n)
 #define __copy_to_user_inatomic __copy_to_user
 #define __copy_from_user_inatomic __copy_from_user
-
-#define copy_to_user_ret(to, from, n, retval) \
-	({ if (copy_to_user(to, from, n)) return retval; })
-
-#define copy_from_user_ret(to, from, n, retval) \
-	({ if (copy_from_user(to, from, n)) return retval; })
 
 unsigned long clear_user(void __user *addr, unsigned long size);
 #define strnlen_user(s, n) (strnlen(s, n) + 1)
