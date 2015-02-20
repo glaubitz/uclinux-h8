@@ -45,7 +45,7 @@ static long pll_round_rate(struct clk_hw *hw, unsigned long rate,
 			m = i;
 		else
 			m = (offset[i] < offset[m])?i:m;
-	
+
 	return *prate * (1 << m);
 }
 
@@ -69,7 +69,7 @@ static int pll_set_rate(struct clk_hw *hw, unsigned long rate,
 	return 0;
 }
 
-const static struct clk_ops pll_ops = {
+static const struct clk_ops pll_ops = {
 	.recalc_rate = pll_recalc_rate,
 	.round_rate = pll_round_rate,
 	.set_rate = pll_set_rate,
@@ -83,10 +83,9 @@ static struct clk *pll_clk_register(struct device *dev, const char *name,
 	struct clk_init_data init;
 
 	hw = kzalloc(sizeof(struct clk_hw), GFP_KERNEL);
-	if (!hw) {
-		dev_err(dev, "failed to allocate hw\n");
+	if (!hw)
 		return ERR_PTR(-ENOMEM);
-	}
+
 	init.name = name;
 	init.ops = &pll_ops;
 	init.flags = CLK_IS_BASIC;
@@ -100,7 +99,7 @@ static struct clk *pll_clk_register(struct device *dev, const char *name,
 
 	return clk;
 }
-	
+
 static int clk_probe(struct platform_device *pdev)
 {
 	struct clk *clk;
@@ -120,7 +119,7 @@ static int clk_probe(struct platform_device *pdev)
 		return PTR_ERR(clk);
 	}
 	clk_register_clkdev(clk, "pll_clk", DEVNAME ".%d", 0);
-	
+
 	clk = clk_register_divider(&pdev->dev, "core_clk", "pll_clk",
 				   CLK_SET_RATE_GATE, (unsigned char *)SCKCR,
 				   0, 3, CLK_DIVIDER_POWER_OF_TWO, &clklock);
@@ -155,6 +154,7 @@ static struct platform_device *devices[] __initdata = {
 int __init h8300_clk_init(int hz)
 {
 	static int master_hz;
+
 	master_hz = hz;
 	clk_device.dev.platform_data = &master_hz;
 	early_platform_add_devices(devices,

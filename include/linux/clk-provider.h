@@ -639,12 +639,12 @@ static inline void clk_writel(u32 val, u32 __iomem *reg)
 
 static inline u32 clk_readl(u32 __iomem *reg)
 {
-	return readb(reg);
+	return __raw_readb(reg);
 }
 
 static inline void clk_writel(u32 val, u32 __iomem *reg)
 {
-	writeb(val, reg);
+	__raw_writeb(val, reg);
 }
 
 #else	/* platform dependent I/O accessors */

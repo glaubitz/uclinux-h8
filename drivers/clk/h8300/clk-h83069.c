@@ -13,7 +13,7 @@
 
 static DEFINE_SPINLOCK(clklock);
 
-#define DIVCR (unsigned char *)0xfee01b
+#define DIVCR ((unsigned char *)0xfee01b)
 #define DEVNAME "h83069-cpg"
 
 static int clk_probe(struct platform_device *pdev)
@@ -63,6 +63,7 @@ static struct platform_device *devices[] __initdata = {
 int __init h8300_clk_init(int hz)
 {
 	static int master_hz;
+
 	master_hz = hz;
 	clk_device.dev.platform_data = &master_hz;
 	early_platform_add_devices(devices,
