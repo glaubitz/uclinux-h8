@@ -1,7 +1,29 @@
+config CPU_H8300H
+	bool
+
+config CPU_H8S
+	bool
+
+config H83069
+	bool
+	select CPU_H8300H
+	select H8300_TMR16
+
+config H8S2678
+	bool
+	select CPU_H8S
+	select H8300_TPU
+
+config RAMKERNEL
+	bool
+
+config ROMKERNEL
+	bool
+
 menu "Processor type and features"
 
 choice
-	prompt "H8/300 platform"
+prompt "H8/300 platform"
 
 config H8300_AE3068
 	bool "AE-3068/69"
@@ -19,6 +41,7 @@ config H8300_H8MAX
 	bool "H8MAX"
 	select H83069
 	select RAMKERNEL
+	select HAVE_IDE
 	help
 	  H8MAX Evaluation Board Support
 	  More Information. (Japanese Only)
@@ -30,6 +53,8 @@ config H8300_KANEBEBE
 	select RAMKERNEL
 	help
 	  KaneBebe Evalition Board Support
+	  More Information. (Japanese Only)
+	  <http://www.nissin-tech.com/2009/10/uclinuxkane-bebe-h83069f.html>
 
 config H8300H_SIM
 	bool "H8/300H GDB Simulator"
@@ -48,7 +73,7 @@ config H8S_EDOSK2674
 	  Renesas EDOSK-2674 Evaluation Board Support
 	  More Information.
 	  <http://www.azpower.com/H8-uClinux/index.html>
- 	  <http://www.renesas.eu/products/tools/introductory_evaluation_tools/evaluation_development_os_kits/edosk2674r/edosk2674r_software_tools_root.jsp>
+	  <http://www.renesas.eu/products/tools/introductory_evaluation_tools/evaluation_development_os_kits/edosk2674r/edosk2674r_software_tools_root.jsp>
 
 config H8S_SIM
 	bool "H8S GDB Simulator"
@@ -61,73 +86,23 @@ config H8S_SIM
 
 endchoice
 
-choice
-	prompt "CPU Selection"
-
-config H83069
-	bool "H8/3065,3066,3067,3068,3069"
-	select CPU_H8300H
-	select H8300_TMR8
-	select H8300_TMR16
-
-config H8S2678
-	bool "H8S/2670,2673,2674R,2675,2676"
-	select CPU_H8S
-	select H8300_TMR8
-	select H8300_TPU
-
-endchoice
-
+if ROMKERNEL
 config CPU_CLOCK
 	int "CPU Clock Frequency"
-	depends on ROMKERNEL
-	default "200000000" if H8300H_AKI3068NET || H8300H_SIM
-	default "250000000" if H8300H_H8MAX || H8300H_KANEBEBE
-	default "333333333" if H8S_EDOSK2674 || H8S_SIM
 	help
 	  CPU Clock Frequency
 
-choice
-	prompt "Kernel executes from"
-	---help---
-	  Choose the memory type that the kernel will be running in.
-
-config RAMKERNEL
-	bool "RAM"
-	help
-	  The kernel will be resident in RAM when running.
-
-config ROMKERNEL
-	bool "ROM"
-	help
-	  The kernel will be resident in FLASH/ROM when running.
-endchoice
-
-config CPU_H8300H
-	bool
-	depends on H83069
-	default y
-
-config CPU_H8S
-	bool
-	depends on H8S2678
-	default y
-
 config ROMSIZE
 	hex "ROM size"
-	depends on ROMKERNEL
 	default 0x200000
+
+config RAMSIZE
+	hex "RAM size"
+endif
 
 config RAMBASE
 	hex "RAM base address"
 	default 0x400000
-
-config RAMSIZE
-	hex "RAM size"
-	depends on ROMKERNEL
-	default 0x200000 if H8300_AE3068 || H8300_H8MAX || H8300H_SIM
-	default 0x400000 if H8300_KANEBEBE
-	default 0x800000 if H8S_EDOSK2674 || H8S_SIM
 
 config OFFSET
         hex "Load offset"
