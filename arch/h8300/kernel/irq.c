@@ -10,12 +10,6 @@
 #include <asm/traps.h>
 
 #ifdef CONFIG_RAMKERNEL
-#define CPU_VECTOR ((unsigned long *)0x000000)
-#define ADDR_MASK (0xffffff)
-
-extern unsigned long *_interrupt_redirect_table;
-void _interrupt_entry(void);
-
 typedef void (*h8300_vector)(void);
 
 static const h8300_vector __initconst trap_table[] = {

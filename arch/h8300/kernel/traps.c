@@ -41,7 +41,7 @@ void __init trap_init(void)
 {
 }
 
-asmlinkage void set_esp0 (unsigned long ssp)
+asmlinkage void set_esp0(unsigned long ssp)
 {
 	current->thread.esp0 = ssp;
 }
@@ -110,11 +110,6 @@ void die(const char *str, struct pt_regs *fp, unsigned long err)
 	spin_unlock_irq(&die_lock);
 	do_exit(SIGSEGV);
 }
-
-extern char _start, _etext;
-#define check_kernel_text(addr) \
-	((addr >= (unsigned long)(&_start)) && \
-	 (addr <  (unsigned long)(&_etext)))
 
 static int kstack_depth_to_print = 24;
 

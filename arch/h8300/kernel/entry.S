@@ -205,7 +205,7 @@ _interrupt_redirect_table:
 	.align	2
 _interrupt_entry:
 	SAVE_ALL
-/* r1l is saved ccr */	
+/* r1l is saved ccr */
 	mov.l	sp,er0
 	add.l	#LVEC,er0
 	btst	#4,r1l
