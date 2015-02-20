@@ -229,9 +229,6 @@ config CLKSRC_MIPS_GIC
 	depends on MIPS_GIC
 	select CLKSRC_OF
 
-config H8300_TMR8
-        bool
-	
 config H8300_TMR16
         bool
 

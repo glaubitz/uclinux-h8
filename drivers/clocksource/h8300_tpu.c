@@ -17,8 +17,8 @@
 #include <linux/clocksource.h>
 #include <linux/module.h>
 #include <linux/clk.h>
+#include <linux/io.h>
 
-#include <asm/io.h>
 #include <asm/irq.h>
 #include <asm/timer.h>
 
@@ -166,11 +166,9 @@ static int tpu_probe(struct platform_device *pdev)
 		return 0;
 	}
 
-	p = kmalloc(sizeof(*p), GFP_KERNEL);
-	if (p == NULL) {
-		dev_err(&pdev->dev, "failed to allocate driver data\n");
+	p = devm_kzalloc(&pdev->dev, sizeof(*p), GFP_KERNEL);
+	if (!p)
 		return -ENOMEM;
-	}
 
 	return tpu_setup(p, pdev);
 }
