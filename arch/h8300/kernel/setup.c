@@ -28,6 +28,7 @@
 #include <asm/pgtable.h>
 #include <asm/sections.h>
 #include <asm/bootparams.h>
+#include <asm/page.h>
 
 #if defined(CONFIG_CPU_H8300H)
 #define CPU "H8/300H"
@@ -45,7 +46,6 @@ EXPORT_SYMBOL(memory_end);
 
 char __initdata command_line[COMMAND_LINE_SIZE];
 
-extern unsigned long _ramend;
 void sim_console_register(void);
 int h8300_clk_init(unsigned long hz);
 
