@@ -33,14 +33,13 @@ void *dma_alloc_coherent(struct device *dev, size_t size,
 	}
 	return ret;
 }
+EXPORT_SYMBOL(dma_alloc_coherent);
 
 void dma_free_coherent(struct device *dev, size_t size,
 			 void *vaddr, dma_addr_t dma_handle)
 {
 	free_pages((unsigned long)vaddr, get_order(size));
 }
-
-EXPORT_SYMBOL(dma_alloc_coherent);
 EXPORT_SYMBOL(dma_free_coherent);
 
 void dma_sync_single_for_device(struct device *dev, dma_addr_t handle,
@@ -49,13 +48,14 @@ void dma_sync_single_for_device(struct device *dev, dma_addr_t handle,
 }
 EXPORT_SYMBOL(dma_sync_single_for_device);
 
-void dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg, int nents,
-			    enum dma_data_direction dir)
+void dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
+			    int nents, enum dma_data_direction dir)
 {
 	int i;
 
 	for (i = 0; i < nents; sg++, i++)
-		dma_sync_single_for_device(dev, sg->dma_address, sg->length, dir);
+		dma_sync_single_for_device(dev, sg->dma_address,
+					   sg->length, dir);
 }
 EXPORT_SYMBOL(dma_sync_sg_for_device);
 
@@ -87,7 +87,8 @@ int dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
 
 	for (i = 0; i < nents; sg++, i++) {
 		sg->dma_address = sg_phys(sg);
-		dma_sync_single_for_device(dev, sg->dma_address, sg->length, dir);
+		dma_sync_single_for_device(dev, sg->dma_address,
+					   sg->length, dir);
 	}
 	return nents;
 }

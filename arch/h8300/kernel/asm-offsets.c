@@ -46,7 +46,7 @@ int main(void)
 	DEFINE(LER5,  offsetof(struct pt_regs, er5)      - sizeof(long));
 	DEFINE(LER6,  offsetof(struct pt_regs, er6)      - sizeof(long));
 	DEFINE(LORIG, offsetof(struct pt_regs, orig_er0) - sizeof(long));
-	DEFINE(LSP ,  offsetof(struct pt_regs, sp)       - sizeof(long));
+	DEFINE(LSP,  offsetof(struct pt_regs, sp)        - sizeof(long));
 	DEFINE(LCCR,  offsetof(struct pt_regs, ccr)      - sizeof(long));
 	DEFINE(LVEC,  offsetof(struct pt_regs, vector)   - sizeof(long));
 #if defined(CONFIG_CPU_H8S)
