@@ -21,18 +21,20 @@
 void user_disable_single_step(struct task_struct *child)
 {
 	unsigned char exr;
+
 	exr = h8300_get_reg(child, PT_EXR);
 	exr &= ~EXR_TRACE;
-	h8300_put_reg(child, PT_EXR,exr);
+	h8300_put_reg(child, PT_EXR, exr);
 }
 
 /* enable singlestep */
 void user_enable_single_step(struct task_struct *child)
 {
 	unsigned char exr;
+
 	exr = h8300_get_reg(child, PT_EXR);
 	exr |= EXR_TRACE;
-	h8300_put_reg(child, PT_EXR,exr);
+	h8300_put_reg(child, PT_EXR, exr);
 }
 
 asmlinkage void trace_trap(unsigned long bp)

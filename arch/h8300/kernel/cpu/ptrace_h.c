@@ -151,7 +151,7 @@ static int isbranch(struct task_struct *task, int reson)
 		"bld #2,%w0\n\t"
 		"bor #0,%w0\n\t"
 		"bst #6,%w0\n\t"
-		: "=&r"(cond) : : "cc");
+		: "=&r"(cond) : "0"(cond) : "cc");
 	cond &= condmask[reson >> 1];
 	if (!(reson & 1))
 		return cond == 0;
@@ -159,7 +159,8 @@ static int isbranch(struct task_struct *task, int reson)
 		return cond != 0;
 }
 
-static unsigned short *decode(struct task_struct *child, const struct optable *op,
+static unsigned short *decode(struct task_struct *child,
+			      const struct optable *op,
 			      char *fetch_p, unsigned short *pc,
 			      unsigned char inst)
 {
@@ -253,4 +254,3 @@ asmlinkage void trace_trap(unsigned long bp)
 	} else
 		force_sig(SIGILL, current);
 }
-
