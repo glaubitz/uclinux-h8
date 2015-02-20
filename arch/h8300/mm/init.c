@@ -38,8 +38,6 @@
 #include <asm/pgtable.h>
 #include <asm/sections.h>
 
-#undef DEBUG
-
 /*
  * BAD_PAGE is the page that is used for page faults when linux
  * is out-of-memory. Older versions of linux just did a
@@ -54,15 +52,8 @@
  * data and COW.
  */
 static unsigned long empty_bad_page_table;
-
 static unsigned long empty_bad_page;
-
 unsigned long empty_zero_page;
-
-extern unsigned long rom_length;
-
-extern unsigned long memory_start;
-extern unsigned long memory_end;
 
 /*
  * paging_init() continues the virtual memory environment setup which
@@ -76,15 +67,11 @@ void __init paging_init(void)
 	 * Make sure start_mem is page aligned,  otherwise bootmem and
 	 * page_alloc get different views og the world.
 	 */
-#ifdef DEBUG
 	unsigned long start_mem = PAGE_ALIGN(memory_start);
-#endif
 	unsigned long end_mem   = memory_end & PAGE_MASK;
 
-#ifdef DEBUG
 	pr_debug("start_mem is %#lx\nvirtual_end is %#lx\n",
 		 start_mem, end_mem);
-#endif
 
 	/*
 	 * Initialize the bad page table and bad page to point
@@ -100,21 +87,15 @@ void __init paging_init(void)
 	 */
 	set_fs(USER_DS);
 
-#ifdef DEBUG
 	pr_debug("before free_area_init\n");
 
 	pr_debug("free_area_init -> start_mem is %#lx\nvirtual_end is %#lx\n",
 		 start_mem, end_mem);
-#endif
 
 	{
 		unsigned long zones_size[MAX_NR_ZONES] = {0, };
 
-		zones_size[ZONE_DMA]    = 0 >> PAGE_SHIFT;
 		zones_size[ZONE_NORMAL] = (end_mem - PAGE_OFFSET) >> PAGE_SHIFT;
-#ifdef CONFIG_HIGHMEM
-		zones_size[ZONE_HIGHMEM] = 0;
-#endif
 		free_area_init(zones_size);
 	}
 }
@@ -150,4 +131,3 @@ free_initmem(void)
 {
 	free_initmem_default(-1);
 }
-
