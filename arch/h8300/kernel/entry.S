@@ -289,11 +289,7 @@ ret_from_exception:
 ret_from_interrupt:
 	mov.b	@(LCCR+1:16,sp),r0l
 	btst	#4,r0l
-#if defined(CONFIG_PREEMPT)
 	bne	resume_kernel:16	/* return from kernel */
-#else
-	bne	restore_all:16		/* return from kernel */
-#endif
 resume_userspace:
 	andc	#0xbf,ccr
 	mov.l	sp,er4
@@ -308,7 +304,7 @@ work_pending:
 	mov.l	sp,er0
 	subs	#4,er0			/* er0: pt_regs */
 	jsr	@do_notify_resume
-	bra	restore_all:8
+	bra	resume_userspace:8
 work_resched:
 	mov.l	sp,er0
 	jsr	@set_esp0

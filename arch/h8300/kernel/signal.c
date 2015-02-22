@@ -149,20 +149,10 @@ static int setup_sigcontext(struct sigcontext __user *sc, struct pt_regs *regs,
 	return err;
 }
 
-static inline void *
-get_sigframe(struct k_sigaction *ka, struct pt_regs *regs, size_t frame_size)
+static inline void __user *
+get_sigframe(struct ksignal *ksig, struct pt_regs *regs, size_t frame_size)
 {
-	unsigned long usp;
-
-	/* Default to using normal stack.  */
-	usp = rdusp();
-
-	/* This is the X/Open sanctioned signal stack switching.  */
-	if (ka->sa.sa_flags & SA_ONSTACK) {
-		if (!sas_ss_flags(usp))
-			usp = current->sas_ss_sp + current->sas_ss_size;
-	}
-	return (void *)((usp - frame_size) & -8UL);
+	return (void __user *)((sigsp(rdusp(), ksig) - frame_size) & -8UL);
 }
 
 static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
@@ -172,7 +162,7 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	int err = 0;
 	unsigned char *ret;
 
-	frame = get_sigframe(&ksig->ka, regs, sizeof(*frame));
+	frame = get_sigframe(ksig, regs, sizeof(*frame));
 
 	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
 		return -EFAULT;
@@ -271,15 +261,6 @@ handle_signal(struct ksignal *ksig, struct pt_regs *regs)
 static void do_signal(struct pt_regs *regs)
 {
 	struct ksignal ksig;
-
-	/*
-	 * We want the common case to go fast, which
-	 * is why we may in certain cases get here from
-	 * kernel mode. Just return without doing anything
-	 * if so.
-	 */
-	if ((regs->ccr & 0x10))
-		return;
 
 	current->thread.esp0 = (unsigned long) regs;
 
