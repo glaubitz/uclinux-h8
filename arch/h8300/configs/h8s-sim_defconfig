@@ -1,8 +1,7 @@
 # CONFIG_LOCALVERSION_AUTO is not set
 # CONFIG_USELIB is not set
-# CONFIG_INIT_FALLBACK is not set
 CONFIG_CC_OPTIMIZE_FOR_SIZE=y
-# CONFIG_UID16 is not set
+# CONFIG_MULTIUSER is not set
 # CONFIG_SYSFS_SYSCALL is not set
 # CONFIG_KALLSYMS is not set
 # CONFIG_BASE_FULL is not set
@@ -43,7 +42,6 @@ CONFIG_SERIAL_SH_SCI_CONSOLE=y
 # CONFIG_HW_RANDOM is not set
 # CONFIG_HWMON is not set
 # CONFIG_USB_SUPPORT is not set
-# CONFIG_IOMMU_SUPPORT is not set
 # CONFIG_FILE_LOCKING is not set
 # CONFIG_DNOTIFY is not set
 # CONFIG_INOTIFY_USER is not set
