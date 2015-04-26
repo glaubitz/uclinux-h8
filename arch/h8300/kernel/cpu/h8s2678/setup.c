@@ -87,7 +87,7 @@ static struct platform_device sci2_device = {
 
 static struct h8300_timer8_config timer8_platform_data = {
 	.mode	= H8300_TMR8_CLKEVTDEV,
-	.div	= H8300_TMR8_DIV_8,
+	.div	= H8300_TMR8_DIV_64,
 };
 
 static struct resource tm8_unit0_resources[] = {
