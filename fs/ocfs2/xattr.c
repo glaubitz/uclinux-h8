@@ -1238,6 +1238,10 @@ static int ocfs2_xattr_block_get(struct inode *inode,
 								i,
 								&block_off,
 								&name_offset);
+			if (ret) {
+				mlog_errno(ret);
+				goto cleanup;
+			}
 			xs->base = bucket_block(xs->bucket, block_off);
 		}
 		if (ocfs2_xattr_is_local(xs->here)) {
@@ -5334,16 +5338,6 @@ out:
 	return ret;
 }
 
-static inline char *ocfs2_xattr_bucket_get_val(struct inode *inode,
-					struct ocfs2_xattr_bucket *bucket,
-					int offs)
-{
-	int block_off = offs >> inode->i_sb->s_blocksize_bits;
-
-	offs = offs % inode->i_sb->s_blocksize;
-	return bucket_block(bucket, block_off) + offs;
-}
-
 /*
  * Truncate the specified xe_off entry in xattr bucket.
  * bucket is indicated by header_bh and len is the new length.
@@ -5675,6 +5669,10 @@ static int ocfs2_delete_xattr_in_bucket(struct inode *inode,
 
 		ret = ocfs2_get_xattr_tree_value_root(inode->i_sb, bucket,
 						      i, &xv, NULL);
+		if (ret) {
+			mlog_errno(ret);
+			break;
+		}
 
 		ret = ocfs2_lock_xattr_remove_allocators(inode, xv,
 							 args->ref_ci,

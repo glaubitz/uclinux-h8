@@ -107,6 +107,7 @@ struct kvm_vcpu_stat {
 	u32 emulated_inst_exits;
 	u32 dec_exits;
 	u32 ext_intr_exits;
+	u32 halt_successful_poll;
 	u32 halt_wakeup;
 	u32 dbell_exits;
 	u32 gdbell_exits;
@@ -584,7 +585,7 @@ struct kvm_vcpu_arch {
 	pgd_t *pgdir;
 
 	u8 io_gpr; /* GPR used as IO source/target */
-	u8 mmio_is_bigendian;
+	u8 mmio_host_swabbed;
 	u8 mmio_sign_extend;
 	u8 osi_needed;
 	u8 osi_enabled;
