@@ -275,7 +275,7 @@ static int timer16_setup(struct timer16_priv *p, struct platform_device *pdev)
 	p->ced.set_mode = timer16_clock_event_mode;
 
 	ret = request_irq(irq, timer16_interrupt,
-			  IRQF_DISABLED | IRQF_TIMER, pdev->name, p);
+			  IRQF_TIMER, pdev->name, p);
 	if (ret < 0) {
 		dev_err(&p->pdev->dev, "failed to request irq %d\n", irq);
 		return ret;

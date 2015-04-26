@@ -298,7 +298,7 @@ static int __init timer8_setup(struct timer8_priv *p,
 	p->irqaction.name = dev_name(&p->pdev->dev);
 	p->irqaction.handler = timer8_interrupt;
 	p->irqaction.dev_id = p;
-	p->irqaction.flags = IRQF_DISABLED | IRQF_TIMER;
+	p->irqaction.flags = IRQF_TIMER;
 
 	p->mode = cfg->mode;
 	p->div = cfg->div;
