@@ -20,7 +20,6 @@
  */
 struct thread_info {
 	struct task_struct *task;		/* main task structure */
-	struct exec_domain *exec_domain;	/* execution domain */
 	unsigned long	   flags;		/* low level flags */
 	int		   cpu;			/* cpu we're on */
 	int		   preempt_count;	/* 0 => preemptable, <0 => BUG */
@@ -33,7 +32,6 @@ struct thread_info {
 #define INIT_THREAD_INFO(tsk)			\
 {						\
 	.task =		&tsk,			\
-	.exec_domain =	&default_exec_domain,	\
 	.flags =	0,			\
 	.cpu =		0,			\
 	.preempt_count = INIT_PREEMPT_COUNT,	\
@@ -66,15 +64,6 @@ static inline struct thread_info *current_thread_info(void)
 }
 
 #endif /* __ASSEMBLY__ */
-
-/*
- * Offsets in thread_info structure, used in assembly code
- */
-#define TI_TASK		0
-#define TI_EXECDOMAIN	4
-#define TI_FLAGS	8
-#define TI_CPU		12
-#define TI_PRE_COUNT	16
 
 /*
  * thread information flag bit numbers
