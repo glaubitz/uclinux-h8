@@ -1,0 +1,17 @@
+* H8/300 CPU bindings
+
+Required properties:
+
+- compatible: Compatible property value should be "renesas,h8300".
+- reg: Contains CPU index.
+- clock-frequency: Contains the clock frequency for CPU, in Hz.
+- renesas,bus-width: Contain the memory bus width.
+
+Example:
+
+		cpu@0 {
+			compatible = "renesas,h8300";
+			reg = <0>;
+			clock-frequency = <20000000>;
+			renesas,bus-width = <16>;
+		};

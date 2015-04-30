@@ -1,0 +1,95 @@
+#include <dt-bindings/clock/renesas,8bit-timer.h>
+
+/dts-v1/;
+/ {
+	compatible = "gnu,gdbsim";
+	#address-cells = <1>;
+	#size-cells = <1>;
+	interrupt-parent = <&h8intc>;
+
+	chosen {
+		bootargs = "console=ttySC0";
+	};
+	aliases {
+		serial0 = &sci0;
+		serial1 = &sci1;
+	};
+
+	clocks {
+		ranges;
+		#address-cells = <1>;
+		#size-cells = <1>;
+		xclk: xclk {
+			#clock-cells = <0>;
+			compatible = "fixed-clock";
+			clock-frequency = <20000000>;
+			clock-output-names = "xtal";
+		};
+		cclk: cclk {
+			compatible = "renesas,h8300-div-clock";
+			clocks = <&xclk>;
+			#clock-cells = <0>;
+			reg = <0xfee01b 2>;
+			renesas,width = <2>;
+		};
+		fclk: fclk {
+			compatible = "fixed-factor-clock";
+			clocks = <&cclk>;
+			#clock-cells = <0>;
+			clock-div = <1>;
+			clock-mult = <1>;
+		};
+	};
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x400000 0x400000>;
+	};
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		cpu@0 {
+			compatible = "renesas,h8300";
+			reg = <0>;
+			clock-frequency = <20000000>;
+			renesas,bus-width = <16>;
+		};
+	};
+
+	h8intc: interrupt-controller@0 {
+		compatible = "renesas,h8300h-intc", "renesas,h8300-intc";
+		#interrupt-cells = <1>;
+		interrupt-controller;
+	};
+	timer8: timer@ffff80 {
+		compatible = "renesas,8bit-timer";
+		reg = <0xffff80 10>;
+		interrupts = <36>;
+		clocks = <&fclk>;
+		clock-names = "fck";
+	};
+	timer16: timer@ffff68 {
+		compatible = "renesas,16bit-timer";
+		reg = <0xffff68 8>, <0xffff60 8>;
+		interrupts = <24>;
+		renesas,channel = <0>;
+		clocks = <&fclk>;
+		clock-names = "fck";
+	};
+
+	sci0: serial@ffffb0 {
+		compatible = "renesas,sci";
+		reg = <0xffffb0 8>;
+		interrupts = <52 53 54 55>;
+		clocks = <&fclk>;
+		clock-names = "sci_ick";
+	};
+	sci1: serial@ffffb8 {
+		compatible = "renesas,sci";
+		reg = <0xffffb8 8>;
+		interrupts = <56 57 58 59>;
+		clocks = <&fclk>;
+		clock-names = "sci_ick";
+	};
+};

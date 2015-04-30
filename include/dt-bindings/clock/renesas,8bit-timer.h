@@ -1,0 +1,11 @@
+#ifndef __DT_BINDINGS_CLOCK_RENESAS_8BIT_TIMER_H__
+#define __DT_BINDINGS_CLOCK_RENESAS_8BIT_TIMER_H__
+
+#define CLOCKSOURCE 0
+#define CLOCKEVENTDEVICE 1
+
+#define DIV_8 0
+#define DIV_64 1
+#define DIV_8192 2
+
+#endif
