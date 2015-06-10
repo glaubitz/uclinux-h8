@@ -1,0 +1,17 @@
+NE2000 compatible network controller
+
+Required properties:
+- compatible: "national,ne2000"
+- reg: base address and length of NE2000.
+- interrupts: interrupt specifier for the sole interrupt.
+- national,dcr: DCR setting value.
+
+Example
+
+	ne2000: ethernet@200000 {
+		compatible = "national,ne2000";
+		reg = <0x200000 32>;
+		interrupts = <17 0>;
+		national,dcr = <0x48>;
+	};
+
