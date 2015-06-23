@@ -15,6 +15,8 @@
 #include <linux/sh_eth.h>
 #include <linux/sh_timer.h>
 #include <linux/io.h>
+#include <linux/of.h>
+#include <linux/of_platform.h>
 
 enum {
 	UNUSED = 0,
@@ -172,6 +174,7 @@ static struct platform_device cmt_device = {
 	.num_resources	= ARRAY_SIZE(cmt_resources),
 };
 
+#if !defined(CONFIG_OF)
 static struct platform_device *sh7619_devices[] __initdata = {
 	&scif0_device,
 	&scif1_device,
@@ -179,11 +182,17 @@ static struct platform_device *sh7619_devices[] __initdata = {
 	&eth_device,
 	&cmt_device,
 };
+#endif
 
 static int __init sh7619_devices_setup(void)
 {
+#if !defined(CONFIG_OF)
 	return platform_add_devices(sh7619_devices,
 				    ARRAY_SIZE(sh7619_devices));
+#else
+	of_platform_populate(NULL, NULL, NULL, NULL);
+	return 0;
+#endif
 }
 arch_initcall(sh7619_devices_setup);
 
@@ -196,7 +205,9 @@ static struct platform_device *sh7619_early_devices[] __initdata = {
 	&scif0_device,
 	&scif1_device,
 	&scif2_device,
+#if !defined(CONFIG_OF)
 	&cmt_device,
+#endif
 };
 
 #define STBCR3 0xf80a0000

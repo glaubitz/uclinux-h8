@@ -8,12 +8,18 @@
 
 #include <linux/init.h>
 #include <linux/platform_device.h>
+#include <linux/memblock.h>
 #include <asm/io.h>
 #include <asm/machvec.h>
 
-static int se7619_mode_pins(void)
+static int __init se7619_mode_pins(void)
 {
 	return MODE_PIN2 | MODE_PIN0;
+}
+
+static void __init se7619_mem_init(void)
+{
+	memblock_add(memory_start, memory_end - memory_start);
 }
 
 /*
@@ -21,6 +27,9 @@ static int se7619_mode_pins(void)
  */
 
 static struct sh_machine_vector mv_se __initmv = {
-	.mv_name		= "SolutionEngine",
+	.mv_name		= "SolutionEngine 7619",
 	.mv_mode_pins		= se7619_mode_pins,
+#if defined(CONFIG_OF)
+	.mv_mem_init		= se7619_mem_init,
+#endif
 };
