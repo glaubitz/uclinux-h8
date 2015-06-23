@@ -2536,6 +2536,12 @@ static const struct of_device_id of_sci_match[] = {
 			.regtype = SCIx_HSCIF_REGTYPE,
 		},
 	}, {
+		.compatible = "renesas,sh2-scif",
+		.data = &(const struct sci_port_info) {
+			.type = PORT_SCIF,
+			.regtype = SCIx_SH2_SCIF_FIFODATA_REGTYPE,
+		},
+	}, {
 		/* Terminator */
 	},
 };
