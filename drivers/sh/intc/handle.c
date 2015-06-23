@@ -15,7 +15,7 @@
 
 static unsigned long ack_handle[INTC_NR_IRQS];
 
-static intc_enum __init intc_grp_id(struct intc_desc *desc,
+static intc_enum __init intc_grp_id(struct sh_intc_desc *desc,
 				    intc_enum enum_id)
 {
 	struct intc_group *g = desc->hw.groups;
@@ -35,7 +35,7 @@ static intc_enum __init intc_grp_id(struct intc_desc *desc,
 	return 0;
 }
 
-static unsigned int __init _intc_mask_data(struct intc_desc *desc,
+static unsigned int __init _intc_mask_data(struct sh_intc_desc *desc,
 					   struct intc_desc_int *d,
 					   intc_enum enum_id,
 					   unsigned int *reg_idx,
@@ -86,7 +86,7 @@ static unsigned int __init _intc_mask_data(struct intc_desc *desc,
 }
 
 unsigned int __init
-intc_get_mask_handle(struct intc_desc *desc, struct intc_desc_int *d,
+intc_get_mask_handle(struct sh_intc_desc *desc, struct intc_desc_int *d,
 		     intc_enum enum_id, int do_grps)
 {
 	unsigned int i = 0;
@@ -103,7 +103,7 @@ intc_get_mask_handle(struct intc_desc *desc, struct intc_desc_int *d,
 	return 0;
 }
 
-static unsigned int __init _intc_prio_data(struct intc_desc *desc,
+static unsigned int __init _intc_prio_data(struct sh_intc_desc *desc,
 					   struct intc_desc_int *d,
 					   intc_enum enum_id,
 					   unsigned int *reg_idx,
@@ -155,7 +155,7 @@ static unsigned int __init _intc_prio_data(struct intc_desc *desc,
 }
 
 unsigned int __init
-intc_get_prio_handle(struct intc_desc *desc, struct intc_desc_int *d,
+intc_get_prio_handle(struct sh_intc_desc *desc, struct intc_desc_int *d,
 		     intc_enum enum_id, int do_grps)
 {
 	unsigned int i = 0;
@@ -172,7 +172,7 @@ intc_get_prio_handle(struct intc_desc *desc, struct intc_desc_int *d,
 	return 0;
 }
 
-static unsigned int intc_ack_data(struct intc_desc *desc,
+static unsigned int intc_ack_data(struct sh_intc_desc *desc,
 				  struct intc_desc_int *d, intc_enum enum_id)
 {
 	struct intc_mask_reg *mr = desc->hw.ack_regs;
@@ -228,7 +228,7 @@ static void intc_enable_disable(struct intc_desc_int *d,
 	}
 }
 
-void __init intc_enable_disable_enum(struct intc_desc *desc,
+void __init intc_enable_disable_enum(struct sh_intc_desc *desc,
 				     struct intc_desc_int *d,
 				     intc_enum enum_id, int enable)
 {
@@ -255,7 +255,7 @@ void __init intc_enable_disable_enum(struct intc_desc *desc,
 }
 
 unsigned int __init
-intc_get_sense_handle(struct intc_desc *desc, struct intc_desc_int *d,
+intc_get_sense_handle(struct sh_intc_desc *desc, struct intc_desc_int *d,
 		      intc_enum enum_id)
 {
 	struct intc_sense_reg *sr = desc->hw.sense_regs;
@@ -284,7 +284,7 @@ intc_get_sense_handle(struct intc_desc *desc, struct intc_desc_int *d,
 }
 
 
-void intc_set_ack_handle(unsigned int irq, struct intc_desc *desc,
+void intc_set_ack_handle(unsigned int irq, struct sh_intc_desc *desc,
 			 struct intc_desc_int *d, intc_enum id)
 {
 	unsigned long flags;

@@ -139,7 +139,7 @@ static unsigned long __init intc_subgroup_data(struct intc_subgroup *subgroup,
 			0, 1, (subgroup->reg_width - 1) - index);
 }
 
-static void __init intc_subgroup_init_one(struct intc_desc *desc,
+static void __init intc_subgroup_init_one(struct sh_intc_desc *desc,
 					  struct intc_desc_int *d,
 					  struct intc_subgroup *subgroup)
 {
@@ -184,7 +184,7 @@ static void __init intc_subgroup_init_one(struct intc_desc *desc,
 	raw_spin_unlock_irqrestore(&d->lock, flags);
 }
 
-void __init intc_subgroup_init(struct intc_desc *desc, struct intc_desc_int *d)
+void __init intc_subgroup_init(struct sh_intc_desc *desc, struct intc_desc_int *d)
 {
 	int i;
 

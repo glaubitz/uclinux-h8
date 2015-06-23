@@ -70,7 +70,7 @@ static void intc_redirect_irq(unsigned int irq, struct irq_desc *desc)
 	generic_handle_irq((unsigned int)irq_get_handler_data(irq));
 }
 
-static void __init intc_register_irq(struct intc_desc *desc,
+static void __init intc_register_irq(struct sh_intc_desc *desc,
 				     struct intc_desc_int *d,
 				     intc_enum enum_id,
 				     unsigned int irq)
@@ -179,7 +179,7 @@ static unsigned int __init save_reg(struct intc_desc_int *d,
 	return 0;
 }
 
-int __init register_intc_controller(struct intc_desc *desc)
+int __init register_intc_controller(struct sh_intc_desc *desc)
 {
 	unsigned int i, k, smp;
 	struct intc_hw_desc *hw = &desc->hw;

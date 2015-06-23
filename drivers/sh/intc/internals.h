@@ -150,13 +150,13 @@ unsigned long intc_get_field_from_handle(unsigned int value,
 #ifdef CONFIG_INTC_BALANCING
 void intc_balancing_enable(unsigned int irq);
 void intc_balancing_disable(unsigned int irq);
-void intc_set_dist_handle(unsigned int irq, struct intc_desc *desc,
+void intc_set_dist_handle(unsigned int irq, struct sh_intc_desc *desc,
 			  struct intc_desc_int *d, intc_enum id);
 #else
 static inline void intc_balancing_enable(unsigned int irq) { }
 static inline void intc_balancing_disable(unsigned int irq) { }
 static inline void
-intc_set_dist_handle(unsigned int irq, struct intc_desc *desc,
+intc_set_dist_handle(unsigned int irq, struct sh_intc_desc *desc,
 		     struct intc_desc_int *d, intc_enum id) { }
 #endif
 
@@ -174,25 +174,25 @@ unsigned int intc_get_prio_level(unsigned int irq);
 void intc_set_prio_level(unsigned int irq, unsigned int level);
 
 /* handle.c */
-unsigned int intc_get_mask_handle(struct intc_desc *desc,
+unsigned int intc_get_mask_handle(struct sh_intc_desc *desc,
 				  struct intc_desc_int *d,
 				  intc_enum enum_id, int do_grps);
-unsigned int intc_get_prio_handle(struct intc_desc *desc,
+unsigned int intc_get_prio_handle(struct sh_intc_desc *desc,
 				  struct intc_desc_int *d,
 				  intc_enum enum_id, int do_grps);
-unsigned int intc_get_sense_handle(struct intc_desc *desc,
+unsigned int intc_get_sense_handle(struct sh_intc_desc *desc,
 				   struct intc_desc_int *d,
 				   intc_enum enum_id);
-void intc_set_ack_handle(unsigned int irq, struct intc_desc *desc,
+void intc_set_ack_handle(unsigned int irq, struct sh_intc_desc *desc,
 			 struct intc_desc_int *d, intc_enum id);
 unsigned long intc_get_ack_handle(unsigned int irq);
-void intc_enable_disable_enum(struct intc_desc *desc, struct intc_desc_int *d,
+void intc_enable_disable_enum(struct sh_intc_desc *desc, struct intc_desc_int *d,
 			      intc_enum enum_id, int enable);
 
 /* irqdomain.c */
 void intc_irq_domain_init(struct intc_desc_int *d, struct intc_hw_desc *hw);
 
 /* virq.c */
-void intc_subgroup_init(struct intc_desc *desc, struct intc_desc_int *d);
+void intc_subgroup_init(struct sh_intc_desc *desc, struct intc_desc_int *d);
 void intc_irq_xlate_set(unsigned int irq, intc_enum id, struct intc_desc_int *d);
 struct intc_map_entry *intc_irq_xlate_get(unsigned int irq);

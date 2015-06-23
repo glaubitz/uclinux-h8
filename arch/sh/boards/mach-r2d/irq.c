@@ -127,7 +127,7 @@ int rts7751r2d_irq_demux(int irq)
  */
 void __init init_rts7751r2d_IRQ(void)
 {
-	struct intc_desc *d;
+	struct sh_intc_desc *d;
 
 	switch (__raw_readw(PA_VERREG) & 0xf0) {
 #ifdef CONFIG_RTS7751R2D_PLUS

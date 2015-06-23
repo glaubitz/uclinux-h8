@@ -436,7 +436,7 @@ static struct intc_mask_reg ack_registers[] __initdata = {
 	  { IRQ0, IRQ1, IRQ2, IRQ3, IRQ4, IRQ5, IRQ6, IRQ7 } },
 };
 
-static struct intc_desc intc_desc __initdata = {
+static struct sh_intc_desc intc_desc __initdata = {
 	.name = "sh7343",
 	.force_enable = ENABLED,
 	.force_disable = DISABLED,

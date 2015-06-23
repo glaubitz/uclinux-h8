@@ -669,7 +669,7 @@ static struct intc_subgroup sh7786_subgroups[] __initdata = {
 	    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, TXI1, BRI1, RXI1, ERI1 } },
 };
 
-static struct intc_desc sh7786_intc_desc __initdata = {
+static struct sh_intc_desc sh7786_intc_desc __initdata = {
 	.name		= "sh7786",
 	.hw		= {
 		.vectors	= sh7786_vectors,

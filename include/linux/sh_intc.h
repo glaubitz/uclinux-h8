@@ -106,7 +106,7 @@ struct intc_hw_desc {
 	_INTC_ARRAY(sense_regs), _INTC_ARRAY(ack_regs),	\
 }
 
-struct intc_desc {
+struct sh_intc_desc {
 	char *name;
 	struct resource *resource;
 	unsigned int num_resources;
@@ -118,7 +118,7 @@ struct intc_desc {
 
 #define DECLARE_INTC_DESC(symbol, chipname, vectors, groups,		\
 	mask_regs, prio_regs, sense_regs)				\
-struct intc_desc symbol __initdata = {					\
+struct sh_intc_desc symbol __initdata = {					\
 	.name = chipname,						\
 	.hw = INTC_HW_DESC(vectors, groups, mask_regs,			\
 			   prio_regs, sense_regs, NULL),		\
@@ -126,13 +126,13 @@ struct intc_desc symbol __initdata = {					\
 
 #define DECLARE_INTC_DESC_ACK(symbol, chipname, vectors, groups,	\
 	mask_regs, prio_regs, sense_regs, ack_regs)			\
-struct intc_desc symbol __initdata = {					\
+struct sh_intc_desc symbol __initdata = {					\
 	.name = chipname,						\
 	.hw = INTC_HW_DESC(vectors, groups, mask_regs,			\
 			   prio_regs, sense_regs, ack_regs),		\
 }
 
-int register_intc_controller(struct intc_desc *desc);
+int register_intc_controller(struct sh_intc_desc *desc);
 int intc_set_priority(unsigned int irq, unsigned int prio);
 int intc_irq_lookup(const char *chipname, intc_enum enum_id);
 void intc_finalize(void);
