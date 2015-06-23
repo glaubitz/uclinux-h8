@@ -81,7 +81,7 @@ device_initcall(se7206_devices_setup);
 
 static int se7206_mode_pins(void)
 {
-	return MODE_PIN1 | MODE_PIN2;
+	return MODE_PIN2|MODE_PIN1;
 }
 
 /*
