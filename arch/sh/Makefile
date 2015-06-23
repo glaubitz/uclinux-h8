@@ -162,6 +162,11 @@ machdir-y	+= mach-common
 # Companion chips
 core-$(CONFIG_HD6446X_SERIES)	+= arch/sh/cchips/hd6446x/
 
+# device tree
+ifneq '$(CONFIG_SH_BUILTIN_DTB)' '""'
+core-y += arch/sh/boot/dts/
+endif
+
 #
 # CPU header paths
 #
@@ -207,6 +212,14 @@ BOOT_TARGETS = uImage uImage.bz2 uImage.gz uImage.lzma uImage.xz uImage.lzo \
 	       uImage.srec uImage.bin zImage vmlinux.bin vmlinux.srec \
 	       romImage
 PHONY += $(BOOT_TARGETS)
+
+%.dtb %.dtb.S %.dtb.o: | scripts
+	$(Q)$(MAKE) $(build)=arch/sh/boot/dts arch/sh/boot/dts/$@
+
+PHONY += dtbs
+
+dtbs: scripts
+	$(Q)$(MAKE) $(build)=arch/sh/boot/dts
 
 all: $(KBUILD_IMAGE)
 

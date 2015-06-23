@@ -321,6 +321,11 @@ ENTRY(_stext)
 
 	SYNCO()			! Wait for pending instructions..
 	
+#if defined(CONFIG_OF)
+	mov.l	8f, r0
+	jsr	@r0
+	 nop
+#endif
 	!			Start kernel
 	mov.l	5f, r0
 	jmp	@r0
@@ -339,6 +344,9 @@ ENTRY(stack_start)
 5:	.long	start_kernel
 6:	.long	cpu_init
 7:	.long	init_thread_union
+#if defined(CONFIG_OF)
+8:	.long	sh_fdt_init
+#endif
 
 #ifdef CONFIG_PMB
 .LPMB_ADDR:		.long	PMB_ADDR

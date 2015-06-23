@@ -29,6 +29,8 @@
 #include <linux/delay.h>
 #include <linux/platform_device.h>
 #include <linux/memblock.h>
+#include <linux/of.h>
+#include <linux/of_fdt.h>
 #include <asm/uaccess.h>
 #include <asm/io.h>
 #include <asm/page.h>
@@ -100,6 +102,7 @@ unsigned long memory_limit = 0;
 static struct resource mem_resources[MAX_NUMNODES];
 
 int l1i_cache_shape, l1d_cache_shape, l2_cache_shape;
+extern char __dtb_start[];
 
 static int __init early_parse_mem(char *p)
 {
@@ -174,13 +177,21 @@ disable:
 
 void calibrate_delay(void)
 {
+#if !defined(CONFIG_OF)
 	struct clk *clk = clk_get(NULL, "cpu_clk");
 
 	if (IS_ERR(clk))
 		panic("Need a sane CPU clock definition!");
 
 	loops_per_jiffy = (clk_get_rate(clk) >> 1) / HZ;
+#else
+	struct device_node *cpu;
+	int freq;
 
+	cpu = of_find_compatible_node(NULL, NULL, "renesas,superh");
+	of_property_read_s32(cpu, "clock-frequency", &freq);
+	loops_per_jiffy = freq / HZ / 2;
+#endif
 	printk(KERN_INFO "Calibrating delay loop (skipped)... "
 			 "%lu.%02lu BogoMIPS PRESET (lpj=%lu)\n",
 			 loops_per_jiffy/(500000/HZ),
@@ -240,6 +251,9 @@ void __init __weak plat_early_device_setup(void)
 
 void __init setup_arch(char **cmdline_p)
 {
+#if defined(CONFIG_OF)
+	unflatten_and_copy_device_tree();
+#endif
 	enable_mmu();
 
 	ROOT_DEV = old_decode_dev(ORIG_ROOT_DEV);
@@ -322,3 +336,11 @@ int test_mode_pin(int pin)
 {
 	return sh_mv.mv_mode_pins() & pin;
 }
+
+#if defined(CONFIG_OF)
+void __init sh_fdt_init(void)
+{
+	early_init_dt_scan(__dtb_start);
+	memblock_allow_resize();
+}
+#endif

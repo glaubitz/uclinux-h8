@@ -12,6 +12,7 @@
 #include <linux/irqdomain.h>
 #include <linux/sh_intc.h>
 #include <linux/export.h>
+#include <linux/of_irq.h>
 #include "internals.h"
 
 /**
@@ -45,13 +46,21 @@ void __init intc_irq_domain_init(struct intc_desc_int *d,
 				 struct intc_hw_desc *hw)
 {
 	unsigned int irq_base, irq_end;
-
+#if defined(CONFIG_OF)
+	struct device_node *intc = NULL;
+#define INTC intc
+#else
+#define INTC NULL
+#endif
 	/*
 	 * Quick linear revmap check
 	 */
 	irq_base = evt2irq(hw->vectors[0].vect);
 	irq_end = evt2irq(hw->vectors[hw->nr_vectors - 1].vect);
 
+#if defined(CONFIG_OF)
+	intc = of_find_compatible_node(NULL, NULL, "renesas,sh-intc");
+#endif
 	/*
 	 * Linear domains have a hard-wired assertion that IRQs start at
 	 * 0 in order to make some performance optimizations. Lamely
@@ -59,10 +68,10 @@ void __init intc_irq_domain_init(struct intc_desc_int *d,
 	 * tree penalty for linear cases with non-zero hwirq bases.
 	 */
 	if (irq_base == 0 && irq_end == (irq_base + hw->nr_vectors - 1))
-		d->domain = irq_domain_add_linear(NULL, hw->nr_vectors,
+		d->domain = irq_domain_add_linear(INTC, hw->nr_vectors,
 						  &intc_evt_ops, NULL);
 	else
-		d->domain = irq_domain_add_tree(NULL, &intc_evt_ops, NULL);
+		d->domain = irq_domain_add_tree(INTC, &intc_evt_ops, NULL);
 
 	BUG_ON(!d->domain);
 }

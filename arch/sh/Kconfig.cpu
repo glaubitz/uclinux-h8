@@ -105,4 +105,8 @@ config CPU_HAS_DSP
 config CPU_HAS_FPU
 	bool
 
+config SH_BUILTIN_DTB
+	string "Builtin DTB"
+	default ""
+
 endmenu
