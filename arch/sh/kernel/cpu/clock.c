@@ -17,13 +17,16 @@
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/clk.h>
+#include <linux/of.h>
+#include <linux/clk-provider.h>
 #include <asm/clock.h>
 #include <asm/machvec.h>
 
 int __init clk_init(void)
 {
-	int ret;
+	int ret = 0;
 
+#if !defined(CONFIG_COMMON_CLK)
 	ret = arch_clk_init();
 	if (unlikely(ret)) {
 		pr_err("%s: CPU clock registration failed.\n", __func__);
@@ -44,7 +47,9 @@ int __init clk_init(void)
 
 	/* Enable the necessary init clocks */
 	clk_enable_init_clocks();
-
+#else
+	of_clk_init(NULL);
+#endif
 	return ret;
 }
 
