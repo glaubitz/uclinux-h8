@@ -153,7 +153,7 @@ config COMMON_CLK_CDCE706
 config COMMON_CLK_SH
 	tristate "Clock driver for SuperH"
 	depends on COMMON_CLK && SUPERH
-	--help--
+	---help---
 	  This driver supports Renesas Super H CPG
 
 source "drivers/clk/qcom/Kconfig"
