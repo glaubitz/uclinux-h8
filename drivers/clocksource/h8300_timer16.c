@@ -159,11 +159,11 @@ static void __init h8300_16timer_init(struct device_node *node)
 
 	of_property_read_u32(node, "renesas,channel", &ch);
 
-	timer16_priv.mapbase = base[REG_CH];
-	timer16_priv.mapcommon = base[REG_COMM];
-	timer16_priv.enb = ch;
-	timer16_priv.ovf = ch;
-	timer16_priv.ovie = 4 + ch;
+	timer16_priv.mapbase = (unsigned long)base[REG_CH];
+	timer16_priv.mapcommon = (unsigned long)base[REG_COMM];
+	timer16_priv.enb = 1 << ch;
+	timer16_priv.imfa = 1 << ch;
+	timer16_priv.imiea = 1 << (4 + ch);
 
 	ret = request_irq(irq, timer16_interrupt,
 			  IRQF_TIMER, timer16_priv.cs.name, &timer16_priv);
@@ -173,7 +173,7 @@ static void __init h8300_16timer_init(struct device_node *node)
 	}
 
 	clocksource_register_hz(&timer16_priv.cs,
-				clk_get_rate(clk) / 8);
+				clk_get_rate(timer16_priv.clk) / 8);
 	return;
 
 unmap_comm:
