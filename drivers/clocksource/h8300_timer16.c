@@ -37,7 +37,7 @@ static unsigned long timer16_get_counter(struct timer16_priv *p)
 	unsigned short v1, v2, v3;
 	unsigned char o1, o2;
 
-	o1 = ioread8(p->mapcommon + TISRC) & p->ovf;
+	o1 = readb(p->mapcommon + TISRC) & p->ovf;
 
 	/* Make sure the timer value is stable. Stolen from acpi_pm.c */
 	do {
@@ -159,8 +159,8 @@ static void __init h8300_16timer_init(struct device_node *node)
 
 	of_property_read_u32(node, "renesas,channel", &ch);
 
-	timer16_priv.mapbase = (unsigned long)base[REG_CH];
-	timer16_priv.mapcommon = (unsigned long)base[REG_COMM];
+	timer16_priv.mapbase = base[REG_CH];
+	timer16_priv.mapcommon = base[REG_COMM];
 	timer16_priv.ovf = 1 << ch;
 	timer16_priv.ovie = 1 << (4 + ch);
 	timer16_priv.enb = 1 << ch;
