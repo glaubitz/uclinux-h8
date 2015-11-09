@@ -33,7 +33,6 @@
 
 #define bset(b, a) iowrite8(ioread8(a) | (1 << (b)), (a))
 #define bclr(b, a) iowrite8(ioread8(a) & ~(1 << (b)), (a))
-
 #define SCALE 64
 
 struct timer8_priv {
