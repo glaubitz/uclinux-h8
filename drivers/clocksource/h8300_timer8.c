@@ -29,7 +29,6 @@
 
 #define FLAG_STARTED (1 << 3)
 
-#define SCALE 64
 #define bset(b, a) iowrite8(ioread8(a) | (1 << (b)), (a))
 #define bclr(b, a) iowrite8(ioread8(a) & ~(1 << (b)), (a))
 #define SCALE 64
