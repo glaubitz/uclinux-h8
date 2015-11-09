@@ -18,7 +18,6 @@
 
 #define TCR	0
 #define TCNT	2
-
 #define bset(b, a) iowrite8(ioread8(a) | (1 << (b)), (a))
 #define bclr(b, a) iowrite8(ioread8(a) & ~(1 << (b)), (a))
 
