@@ -77,7 +77,6 @@ static int timer8_enable(struct timer8_priv *p)
 static int timer8_start(struct timer8_priv *p)
 {
 	int ret;
-
 	if ((p->flags & FLAG_STARTED))
 		return 0;
 
