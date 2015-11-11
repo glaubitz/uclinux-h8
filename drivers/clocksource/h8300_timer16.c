@@ -35,7 +35,7 @@ struct timer16_priv {
 static unsigned long timer16_get_counter(struct timer16_priv *p)
 {
 	unsigned short v1, v2, v3;
-	unsigned char  o1, o2;
+	unsigned char o1, o2;
 
 	o1 = ioread8(p->mapcommon + TISRC) & p->ovf;
 
