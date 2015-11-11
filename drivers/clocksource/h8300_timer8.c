@@ -192,16 +192,20 @@ static void __init h8300_8timer_init(struct device_node *node)
 	}
 	if (request_irq(irq, timer8_interrupt, IRQF_TIMER,
 			timer8_priv.ced.name, &timer8_priv) < 0) {
-	rate = clk_get_rate(clk) / SCALE;
-	if (!rate) {
+	timer8_priv.rate = clk_get_rate(clk);
+	if (!timer8_priv.rate) {
 		pr_err("Failed to get rate for the clocksource\n");
 		goto unmap_reg;
 	}
+	timer8_priv.rate /= SCALE;
+	if (request_irq(irq, timer8_interrupt,
+			IRQF_TIMER, timer8_priv.ced.name, &timer8_priv) < 0) {
 		pr_err("failed to request irq %d for clockevent\n", irq);
 		goto unmap_reg;
 	clockevents_config_and_register(&timer8_priv.ced,
 
-	clockevents_config_and_register(&timer8_priv.ced, rate, 1, 0x0000ffff);
+	clockevents_config_and_register(&timer8_priv.ced,
+					timer8_priv.rate, 1, 0x0000ffff);
 
 	return;
 unmap_reg:
