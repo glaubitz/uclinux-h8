@@ -118,6 +118,7 @@ static struct timer16_priv timer16_priv = {
 		.enable = timer16_enable,
 		.disable = timer16_disable,
 		.mask = CLOCKSOURCE_MASK(sizeof(unsigned long) * 8),
+		.max_cycles = 0xffffffff,
 		.flags = CLOCK_SOURCE_IS_CONTINUOUS,
 	},
 };
@@ -160,9 +161,9 @@ static void __init h8300_16timer_init(struct device_node *node)
 
 	timer16_priv.mapbase = (unsigned long)base[REG_CH];
 	timer16_priv.mapcommon = (unsigned long)base[REG_COMM];
+	timer16_priv.ovf = 1 << ch;
+	timer16_priv.ovie = 1 << (4 + ch);
 	timer16_priv.enb = 1 << ch;
-	timer16_priv.imfa = 1 << ch;
-	timer16_priv.imiea = 1 << (4 + ch);
 
 	ret = request_irq(irq, timer16_interrupt,
 			  IRQF_TIMER, timer16_priv.cs.name, &timer16_priv);
@@ -172,7 +173,7 @@ static void __init h8300_16timer_init(struct device_node *node)
 	}
 
 	clocksource_register_hz(&timer16_priv.cs,
-				clk_get_rate(timer16_priv.clk) / 8);
+				clk_get_rate(clk) / 8);
 	return;
 
 unmap_comm:
