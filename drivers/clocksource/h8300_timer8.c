@@ -63,6 +63,9 @@ static void timer8_set_next(struct timer8_priv *p, unsigned long delta)
 	iowrite16be(0x0000, p->mapbase + _8TCNT);
 	bclr(CMFA, p->mapbase + _8TCSR);
 	bset(CMIEA, p->mapbase + _8TCR);
+		  p->mapbase + _8TCSR);
+	ctrl_outb(ctrl_inb(p->mapbase + _8TCR) | CMIEA,
+		  p->mapbase + _8TCR);
 }
 
 static int timer8_enable(struct timer8_priv *p)
