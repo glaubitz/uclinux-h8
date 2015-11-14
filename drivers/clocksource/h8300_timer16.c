@@ -37,7 +37,7 @@ static unsigned long timer16_get_counter(struct timer16_priv *p)
 	unsigned short v1, v2, v3;
 	unsigned char o1, o2;
 
-	o1 = readb(p->mapcommon + TISRC) & p->ovf;
+	o1 = ioread8(p->mapcommon + TISRC) & p->ovf;
 
 	/* Make sure the timer value is stable. Stolen from acpi_pm.c */
 	do {
@@ -103,7 +103,7 @@ static void timer16_disable(struct clocksource *cs)
 	struct timer16_priv *p = cs_to_priv(cs);
 
 	WARN_ON(!p->cs_enabled);
-
+	ctrl_bclr(p->ovie, p->mapcommon + TISRC);
 	bclr(p->ovie, p->mapcommon + TISRC);
 	bclr(p->enb, p->mapcommon + TSTR);
 
@@ -161,9 +161,9 @@ static void __init h8300_16timer_init(struct device_node *node)
 
 	timer16_priv.mapbase = base[REG_CH];
 	timer16_priv.mapcommon = base[REG_COMM];
-	timer16_priv.ovf = 1 << ch;
-	timer16_priv.ovie = 1 << (4 + ch);
-	timer16_priv.enb = 1 << ch;
+	timer16_priv.ovf = ch;
+	timer16_priv.ovie = 4 + ch;
+	timer16_priv.enb = ch;
 
 	ret = request_irq(irq, timer16_interrupt,
 			  IRQF_TIMER, timer16_priv.cs.name, &timer16_priv);
