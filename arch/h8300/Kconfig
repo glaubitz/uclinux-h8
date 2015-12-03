@@ -21,6 +21,9 @@ config H8300
 	select HAVE_ARCH_KGDB
 	select HAVE_KERNEL_GZIP
 	select HAVE_KERNEL_LZO
+	select ARCH_REQUIRE_GPIOLIB
+	select PINCTRL
+	select PINCTRL_H8300
 
 config RWSEM_GENERIC_SPINLOCK
 	def_bool y
