@@ -21,6 +21,9 @@
 #define bset(b, a) iowrite8(ioread8(a) | (1 << (b)), (a))
 #define bclr(b, a) iowrite8(ioread8(a) & ~(1 << (b)), (a))
 
+#define bset(b, a) iowrite8(ioread8(a) | (1 << (b)), (a))
+#define bclr(b, a) iowrite8(ioread8(a) & ~(1 << (b)), (a))
+
 struct timer16_priv {
 	struct clocksource cs;
 	unsigned long total_cycles;
@@ -35,7 +38,7 @@ struct timer16_priv {
 static unsigned long timer16_get_counter(struct timer16_priv *p)
 {
 	unsigned short v1, v2, v3;
-	unsigned char o1, o2;
+	unsigned char  o1, o2;
 
 	o1 = ioread8(p->mapcommon + TISRC) & p->ovf;
 
@@ -103,7 +106,7 @@ static void timer16_disable(struct clocksource *cs)
 	struct timer16_priv *p = cs_to_priv(cs);
 
 	WARN_ON(!p->cs_enabled);
-	ctrl_bclr(p->ovie, p->mapcommon + TISRC);
+
 	bclr(p->ovie, p->mapcommon + TISRC);
 	bclr(p->enb, p->mapcommon + TSTR);
 
@@ -118,7 +121,6 @@ static struct timer16_priv timer16_priv = {
 		.enable = timer16_enable,
 		.disable = timer16_disable,
 		.mask = CLOCKSOURCE_MASK(sizeof(unsigned long) * 8),
-		.max_cycles = 0xffffffff,
 		.flags = CLOCK_SOURCE_IS_CONTINUOUS,
 	},
 };
@@ -161,9 +163,9 @@ static void __init h8300_16timer_init(struct device_node *node)
 
 	timer16_priv.mapbase = base[REG_CH];
 	timer16_priv.mapcommon = base[REG_COMM];
+	timer16_priv.enb = ch;
 	timer16_priv.ovf = ch;
 	timer16_priv.ovie = 4 + ch;
-	timer16_priv.enb = ch;
 
 	ret = request_irq(irq, timer16_interrupt,
 			  IRQF_TIMER, timer16_priv.cs.name, &timer16_priv);

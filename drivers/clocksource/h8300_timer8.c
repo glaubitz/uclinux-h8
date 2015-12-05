@@ -33,6 +33,9 @@
 #define bclr(b, a) iowrite8(ioread8(a) & ~(1 << (b)), (a))
 #define SCALE 64
 
+#define bset(b, a) iowrite8(ioread8(a) | (1 << (b)), (a))
+#define bclr(b, a) iowrite8(ioread8(a) & ~(1 << (b)), (a))
+
 struct timer8_priv {
 	struct clock_event_device ced;
 	void __iomem *mapbase;

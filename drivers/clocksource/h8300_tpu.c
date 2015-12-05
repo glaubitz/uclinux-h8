@@ -20,6 +20,8 @@
 #define TCNT	0x6
 #define TCFV	0x10
 
+#define TCFV	0x10
+
 struct tpu_priv {
 	struct clocksource cs;
 	void __iomem *mapbase1;
