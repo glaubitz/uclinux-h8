@@ -53,16 +53,10 @@ extern char __dtb_start[];
 struct screen_info screen_info;
 #endif
 
-char __initdata command_line[COMMAND_LINE_SIZE];
-
-void sim_console_register(void);
-
-void __init h8300_fdt_init(void *fdt, char *bootargs)
+void __init h8300_fdt_init(void *fdt)
 {
 	if (!fdt)
 		fdt = __dtb_start;
-	else
-		strcpy(command_line, bootargs);
 
 	early_init_dt_scan(fdt);
 	memblock_allow_resize();
@@ -128,8 +122,6 @@ void __init setup_arch(char **cmdline_p)
 	pr_notice("\r\n\nuClinux " CPU "\n");
 	pr_notice("Flat model support (C) 1998,1999 Kenneth Albanowski, D. Jeff Dionne\n");
 
-	if (*command_line)
-		strcpy(boot_command_line, command_line);
 	*cmdline_p = boot_command_line;
 
 	parse_early_param();
