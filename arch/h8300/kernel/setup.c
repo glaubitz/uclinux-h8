@@ -46,7 +46,7 @@
 unsigned long memory_start;
 unsigned long memory_end;
 EXPORT_SYMBOL(memory_end);
-static unsigned long freq;
+static unsigned int freq;
 extern char __dtb_start[];
 
 #ifdef CONFIG_VT
@@ -144,11 +144,11 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	cpu = CPU;
 
 	seq_printf(m,  "CPU:\t\t%s\n"
-		   "Clock:\t\t%lu.%1luMHz\n"
+		   "Clock:\t\t%u.%uMHz\n"
 		   "BogoMips:\t%lu.%02lu\n"
 		   "Calibration:\t%lu loops\n",
 		   cpu,
-		   freq/1000, freq%1000,
+		   freq/1000000, freq%1000000,
 		   (loops_per_jiffy*HZ)/500000,
 		   ((loops_per_jiffy*HZ)/5000)%100,
 		   (loops_per_jiffy*HZ));
@@ -224,10 +224,9 @@ static __init int access_timing(void)
 void __init calibrate_delay(void)
 {
 	struct device_node *cpu;
-	int freq;
 
 	cpu = of_find_compatible_node(NULL, NULL, "renesas,h8300");
-	of_property_read_s32(cpu, "clock-frequency", &freq);
+	of_property_read_u32(cpu, "clock-frequency", &freq);
 	loops_per_jiffy = freq / HZ / (access_timing() * 2);
 	pr_cont("%lu.%02lu BogoMIPS (lpj=%lu)\n",
 		loops_per_jiffy / (500000 / HZ),
