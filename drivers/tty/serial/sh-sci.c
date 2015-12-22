@@ -581,7 +581,7 @@ static void sci_clear_SCxSR(struct uart_port *port, unsigned int mask)
 }
 
 #if defined(CONFIG_CONSOLE_POLL) || defined(CONFIG_SERIAL_SH_SCI_CONSOLE) \
-	|| defined(CONFIG_SERIAL_EARLYCON)
+	|| defined(CONFIG_SERIAL_SH_SCI_EARLYCON)
 
 #ifdef CONFIG_CONSOLE_POLL
 static int sci_poll_get_char(struct uart_port *port)
@@ -622,7 +622,8 @@ static void sci_poll_put_char(struct uart_port *port, unsigned char c)
 	serial_port_out(port, SCxTDR, c);
 	sci_clear_SCxSR(port, SCxSR_TDxE_CLEAR(port) & ~SCxSR_TEND(port));
 }
-#endif /* CONFIG_CONSOLE_POLL || CONFIG_SERIAL_SH_SCI_CONSOLE */
+#endif /* CONFIG_CONSOLE_POLL || CONFIG_SERIAL_SH_SCI_CONSOLE
+	  || CONFIG_SERIAL_SH_SCI_EARLYCON_*/
 
 static void sci_init_pins(struct uart_port *port, unsigned int cflag)
 {
