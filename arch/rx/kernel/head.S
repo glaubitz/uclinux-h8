@@ -11,7 +11,6 @@
 #include <linux/init.h>
 #include <linux/linkage.h>
 #include <asm/thread_info.h>
-#include <asm/vmlinux.lds.h>
 
 	.global	startup
 	.section	.head.text,"ax"

@@ -35,6 +35,7 @@ void do_fpuerror(struct pt_regs *regs);
 void do_nmi(struct pt_regs *regs);
 void do_breakpoint(struct pt_regs *regs);
 void do_buserr(struct pt_regs *regs);
+void die(const char *str, struct pt_regs *regs);
 
 void (*exception_table[32 + 20])(struct pt_regs *regs);
 struct installed_exception {
