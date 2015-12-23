@@ -18,8 +18,6 @@ struct pt_regs {
 #define PT_REG(reg)	((long)&((struct pt_regs *)0)->reg)
 
 #define user_mode(regs) (((regs)->psw & (1<<20)))
-#define instruction_pointer(regs) ((regs)->pc)
-#define profile_pc(regs) instruction_pointer(regs)
 extern void show_regs(struct pt_regs *);
 #endif /* __ASSEMBLY__ */
 #define	OFF_R1	(1*4)
@@ -31,4 +29,9 @@ extern void show_regs(struct pt_regs *);
 #define OFF_USP (16*4)
 #define OFF_VEC (17*4)
 #define OFF_PSW (19*4)
+
+#define GET_FP(regs) (0)
+#define SET_FP(regs, val) do {} while(0)
+#include <asm-generic/ptrace.h>
+
 #endif /* __ASM_RX_PTRACE_H__ */

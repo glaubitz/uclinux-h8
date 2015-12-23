@@ -11,48 +11,63 @@
 #include <linux/platform_device.h>
 #include <linux/serial_sci.h>
 
-static struct plat_sci_port sci_platform_data[] = {
-	/* SCI0 to SCI2 */
-	{
-		.mapbase	= 0x00088240,
-		.flags		= UPF_BOOT_AUTOCONF,
-		.type		= PORT_SCI,
-		.irqs		= { 214, 215, 216, 0 },
-	}, {
-		.mapbase	= 0x00088248,
-		.flags		= UPF_BOOT_AUTOCONF,
-		.type		= PORT_SCI,
-		.irqs		= { 218, 219, 220, 0 },
-	}, {
-		.mapbase	= 0x00088250,
-		.flags		= UPF_BOOT_AUTOCONF,
-		.type		= PORT_SCI,
-		.irqs		= { 222, 223, 224, 0 },
-	}, {
-		.flags = 0,
-	}
+static struct plat_sci_port sci0_platform_data = {
+	.flags		= UPF_BOOT_AUTOCONF,
+	.type		= PORT_SCI,
+	.scscr		= SCSCR_RE | SCSCR_TE,
+};
+static struct plat_sci_port sci1_platform_data = {
+	.flags		= UPF_BOOT_AUTOCONF,
+	.type		= PORT_SCI,
+	.scscr		= SCSCR_RE | SCSCR_TE,
+};
+static struct plat_sci_port sci2_platform_data = {
+	.flags		= UPF_BOOT_AUTOCONF,
+	.type		= PORT_SCI,
+	.scscr		= SCSCR_RE | SCSCR_TE,
+};
+
+static struct resource sci0_resource[] = {
+	DEFINE_RES_MEM(0x00088240, 8),
+	DEFINE_RES_IRQ(214),
+};
+
+static struct resource sci1_resource[] = {
+	DEFINE_RES_MEM(0x00088248, 8),
+	DEFINE_RES_IRQ(218),
+};
+
+static struct resource sci2_resource[] = {
+	DEFINE_RES_MEM(0x00088250, 8),
+	DEFINE_RES_IRQ(222),
 };
 
 static struct platform_device sci_device[] = {
 	{
 		.name		= "sh-sci",
 		.id		= 0,
+		.resource	= sci0_resource,
+		.num_resources	= ARRAY_SIZE(sci0_resource),
 		.dev		= {
-			.platform_data	= &sci_platform_data[0],
+			.platform_data	= &sci0_platform_data,
 		},
 	},
 	{
 		.name		= "sh-sci",
 		.id		= 1,
+		.resource	= sci1_resource,
+		.num_resources	= ARRAY_SIZE(sci1_resource),
 		.dev		= {
-			.platform_data	= &sci_platform_data[1],
+			.platform_data	= &sci1_platform_data,
 		},
 	},
 	{
 		.name		= "sh-sci",
 		.id		= 2,
+		.resource	= sci2_resource,
+		.num_resources	= ARRAY_SIZE(sci2_resource),
 		.dev		= {
-			.platform_data	= &sci_platform_data[2],
+			.platform_data	= &sci2_platform_data,
 		},
 	},
 };

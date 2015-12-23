@@ -14,11 +14,9 @@ void ptrace_disable(struct task_struct *child)
 {
 }
 
-asmlinkage long syscall_trace_enter(struct pt_regs *regs)
+asmlinkage long do_syscall_trace_enter(struct pt_regs *regs)
 {
 	long ret = 0;
-
-	secure_computing(regs->r[8]);
 
 	if (test_thread_flag(TIF_SYSCALL_TRACE) &&
 	    tracehook_report_syscall_entry(regs))
@@ -33,11 +31,10 @@ asmlinkage long syscall_trace_enter(struct pt_regs *regs)
 		trace_sys_enter(regs, regs->r[8]);
 
 	if (unlikely(current->audit_context))
-		audit_syscall_entry(EM_RX|__AUDIT_ARCH_LE, regs->r[8],
-				    regs->r[1], regs->r[2],
-				    regs->r[3], regs->r[4]);
+		audit_syscall_entry(regs->r[1], regs->r[2], regs->r[3],
+				    regs->r[4], regs->r[5]);
 
-	return ret ?: regs->r[8];
+	return ret ?: regs->r[1];
 }
 
 asmlinkage void syscall_trace_leave(struct pt_regs *regs)

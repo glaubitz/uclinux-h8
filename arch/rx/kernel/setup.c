@@ -23,6 +23,7 @@
 #include <linux/init.h>
 #include <linux/ioport.h>
 #include <linux/initrd.h>
+#include <linux/platform_device.h>
 #include <asm/setup.h>
 #include <asm/irq.h>
 #include <asm/pgtable.h>
@@ -31,7 +32,7 @@ unsigned long rom_length;
 unsigned long memory_start;
 unsigned long memory_end;
 
-#define COMMAND_LINE ((char *)CONFIG_RAMSTART)
+#define COMMAND_LINE ((char *)0x400)
 
 static struct resource code_resource = {
 	.name	= "Kernel code",

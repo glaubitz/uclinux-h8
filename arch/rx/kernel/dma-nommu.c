@@ -14,7 +14,8 @@ struct dma_map_ops *dma_ops;
 EXPORT_SYMBOL(dma_ops);
 
 static void *dma_generic_alloc_coherent(struct device *dev, size_t size,
-				 dma_addr_t *dma_handle, gfp_t gfp)
+					dma_addr_t *dma_handle, gfp_t gfp,
+					struct dma_attrs *attrs)
 {
 	void *ret;
 	int order = get_order(size);
@@ -33,7 +34,8 @@ static void *dma_generic_alloc_coherent(struct device *dev, size_t size,
 }
 
 static void dma_generic_free_coherent(struct device *dev, size_t size,
-			       void *vaddr, dma_addr_t dma_handle)
+				      void *vaddr, dma_addr_t dma_handle,
+				      struct dma_attrs *attrs)
 {
 	int order = get_order(size);
 	unsigned long pfn = dma_handle >> PAGE_SHIFT;
@@ -75,11 +77,11 @@ static int nommu_dma_map_sg(struct device *dev, struct scatterlist *sg,
 }
 
 struct dma_map_ops rx_dma_ops = {
-	.alloc_coherent		= dma_generic_alloc_coherent,
-	.free_coherent		= dma_generic_free_coherent,
-	.map_page		= nommu_dma_map_page,
-	.map_sg			= nommu_dma_map_sg,
-	.is_phys		= 1,
+	.alloc		= dma_generic_alloc_coherent,
+	.free		= dma_generic_free_coherent,
+	.map_page	= nommu_dma_map_page,
+	.map_sg		= nommu_dma_map_sg,
+	.is_phys	= 1,
 };
 
 void __init no_iommu_init(void)

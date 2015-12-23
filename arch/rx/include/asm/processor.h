@@ -100,8 +100,8 @@ void show_trace(struct task_struct *tsk, unsigned long *sp,
 		struct pt_regs *regs);
 
 #define task_pt_regs(tsk) ((struct pt_regs *)(tsk)->thread.esp0 - 1)
-#define	KSTK_EIP(tsk) (task_pt_regs(task)->pc)
-#define	KSTK_ESP(tsk) (task_pt_regs(task)->r[0])
+#define	KSTK_EIP(tsk) (task_pt_regs(tsk)->pc)
+#define	KSTK_ESP(tsk) (task_pt_regs(tsk)->r[0])
 
 #define cpu_relax()    barrier()
 

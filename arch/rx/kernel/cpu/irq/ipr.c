@@ -11,21 +11,21 @@
 #define IR (0x00087000)
 #define IER (0x00087200)
 
-static void disable_ipr_irq(unsigned int irq)
+static void disable_ipr_irq(struct irq_data *data)
 {
-	void *ipr = get_irq_chip_data(irq);
+	void *ipr = irq_data_get_irq_chip(data);
 	__raw_writeb(0, ipr);
 }
 
-static void enable_ipr_irq(unsigned int irq)
+static void enable_ipr_irq(struct irq_data *data)
 {
 	unsigned int offset;
 	unsigned int bit;
 	u8 ier;
-	void *ipr = get_irq_chip_data(irq);
+	void *ipr = irq_data_get_irq_chip(data);
 	__raw_writeb(1, ipr);
-	offset = irq / 8;
-	bit = irq % 8;
+	offset = data->irq / 8;
+	bit = data->irq % 8;
 	ier = __raw_readb((void __iomem *)(IER + offset));
 	ier |= (1 << bit);		/* enable IRQ on ICU */
 	__raw_writeb(ier, (void __iomem *)(IER + offset));
@@ -125,27 +125,27 @@ const static struct {
 #endif
 };
 
-void __init setup_rx_irq_desc(struct irq_chip *chip)
+struct irq_chip chip = {
+	.name	= "RX-IPR",
+	.irq_mask 	= disable_ipr_irq,
+	.irq_unmask = enable_ipr_irq,
+	.irq_mask_ack = disable_ipr_irq,
+};
+
+void __init setup_rx_irq_desc(void)
 {
 	int i;
 
-	chip->mask = disable_ipr_irq;
-	chip->unmask = enable_ipr_irq;
-	chip->mask_ack = disable_ipr_irq;
-
 	for (i = 0; i < ARRAY_SIZE(irq_info); i++) {
-		struct irq_desc *irq_desc;
-
-		irq_desc = irq_to_desc_alloc_node(irq_info[i].irq, numa_node_id());
-		if (unlikely(!irq_desc)) {
+		if (unlikely(!irq_alloc_desc_at(irq_info[i].irq, numa_node_id()))) {
 			printk(KERN_INFO "can not get irq_desc for %d\n",
 			       irq_info[i].irq);
 			continue;
 		}
 
 		disable_irq_nosync(irq_info[i].irq);
-		set_irq_chip_and_handler_name(irq_info[i].irq, chip, handle_level_irq,"");
-		set_irq_chip_data(irq_info[i].irq, (void *)(0x00087300 +irq_info[i].ipr));
-		disable_ipr_irq(irq_info[i].irq);
+		irq_set_chip_and_handler_name(irq_info[i].irq, &chip, handle_level_irq,"");
+		irq_set_chip_data(irq_info[i].irq, (void *)(0x00087300 +irq_info[i].ipr));
+		disable_ipr_irq(irq_get_irq_data(irq_info[i].irq));
 	}
 }

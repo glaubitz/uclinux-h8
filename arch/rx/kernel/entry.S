@@ -28,6 +28,7 @@
 	
 .global	rx_int_table
 .global ret_from_fork
+.global ret_from_kernel_thread
 .global rx_exception_handler
 	
 	.section	.text
@@ -144,13 +145,13 @@ syscall_entry:
 	tst	#_TIF_WORK_SYSCALL_MASK,r14
 	bnz	4f
 1:	
-	cmp	#NR_syscalls,r15
+	cmp	#__NR_syscalls,r15
 	blt	2f
 	mov.l	#-ENOSYS,r1	; invalid no
 	bra	3f
 2:	
 	shll	#2,r15
-	add	#syscall_table,r15
+	add	#_sys_call_table,r15
 	mov.l	[r15],r15
 	mov.l	r7,[-r0]
 	mov.l	r5,[-r0]
@@ -169,7 +170,7 @@ syscall_entry:
 4:
 	;; syscall trace enter
 	mov.l	r0,r1
-	bsr	syscall_trace_enter ; syscall_trace_enter(pt_regs *)
+	bsr	do_syscall_trace_enter ; syscall_trace_enter(pt_regs *)
 	mov.l	OFF_R1[r0],r1
 	mov.l	OFF_R2[r0],r2
 	mov.l	OFF_R3[r0],r3
@@ -189,4 +190,11 @@ ret_from_fork:
 	bsr	schedule_tail
 	bra	ret_from_exception
 
+ret_from_kernel_thread:
+	bsr	schedule_tail
+	mov.l	OFF_R1[r0],r1
+	mov.l	OFF_R2[r0],r2
+	jsr	r2
+	bra	ret_from_exception
+	
 	.end

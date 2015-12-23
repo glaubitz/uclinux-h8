@@ -5,12 +5,14 @@
 
 config RX
         def_bool y
-       	select EMBEDDED
 	select HAVE_CLK
 	select HAVE_SYSCALL_TRACEPOINTS
 	select HAVE_KERNEL_GZIP
 	select HAVE_DMA_ATTRS
 	select HAVE_GENERIC_DMA_COHERENT
+	select GENERIC_ATOMIC64
+	select HAVE_UID16
+	select VIRT_TO_BUS
  
 config MMU
 	def_bool n
@@ -121,7 +123,7 @@ endchoice
 
 config CPU_RX610
        bool
-       select RX_IPR
+       select RX_ICUA
 
 config CPU_RX62N
        bool

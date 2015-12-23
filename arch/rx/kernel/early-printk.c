@@ -34,8 +34,6 @@ static struct console gdb_console = {
 };
 #endif
 
-static struct console *early_console = NULL;
-
 static int __init setup_early_printk(char *buf)
 {
 	if (!buf)

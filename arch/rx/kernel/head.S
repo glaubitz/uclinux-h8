@@ -60,6 +60,7 @@ startup:
 	add	#1,r1
 	sub	#1,r4
 	bne	1b
+	mov.b	#0,[r1]
 #endif
 	/* clear BSS */
 	mov.l	#_sbss,r1

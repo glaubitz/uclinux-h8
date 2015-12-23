@@ -90,56 +90,34 @@ void show_regs(struct pt_regs * regs)
 	       regs->r[14],regs->r[15]);
 }
 
-/*
- * Create a kernel thread
- */
-static void __noreturn kernel_thread_helper(int dummy, int (*fn)(void *), void *arg)
-{
-	fn(arg);
-	do_exit(-1);
-}
-
-int kernel_thread(int (*fn)(void *), void * arg, unsigned long flags)
-{
-	struct pt_regs regs;
-
-	memset(&regs, 0, sizeof(regs));
-	regs.r[2] = (unsigned long)fn;
-	regs.r[3] = (unsigned long)arg;
-
-	regs.pc = (unsigned long)kernel_thread_helper;
-	regs.psw = 0;
-
-	/* Ok, create the new process.. */
-	return do_fork(flags | CLONE_VM | CLONE_UNTRACED, 0,
-		      &regs, 0, NULL, NULL);
-}
-
 asmlinkage void ret_from_fork(void);
+asmlinkage void ret_from_kernel_thread(void);
 
 int copy_thread(unsigned long clone_flags,
                 unsigned long usp, unsigned long topstk,
-		 struct task_struct * p, struct pt_regs * regs)
+		 struct task_struct * p)
 {
 	struct pt_regs *childregs = 
 		(struct pt_regs *) (THREAD_SIZE + task_stack_page(p)) - 1;
 
-	*childregs = *regs;
-	childregs->usp  = usp;
-	childregs->r[1] = 0;
+	if (unlikely(p->flags & PF_KTHREAD)) {
+		memset(childregs, 0, sizeof(struct pt_regs));
+		p->thread.pc = (unsigned long) ret_from_kernel_thread;
+		childregs->r[1] = topstk; /* arg */
+		childregs->r[2] = usp; /* fn */
+	}  else {
+		*childregs = *current_pt_regs();
+		childregs->r[1] = 0;
+		p->thread.pc = (unsigned long)ret_from_fork;
+		childregs->usp  = usp;
+	}
 
 	p->thread.sp = (unsigned long)childregs;
-	p->thread.pc = (unsigned long)ret_from_fork;
 
 	return 0;
 }
 
-asmlinkage int sys_fork(void)
-{
-	return -EINVAL;
-}
-
-asmlinkage int rx_clone(struct pt_regs *regs)
+asmlinkage int sys_clone(struct pt_regs *regs)
 {
 	unsigned long clone_flags = regs->r[1];
 	unsigned long newsp = regs->r[2];
@@ -148,37 +126,9 @@ asmlinkage int rx_clone(struct pt_regs *regs)
 
 	if (!newsp)
 		newsp = regs->usp;
-	return do_fork(clone_flags, newsp, regs, 0,
+	return do_fork(clone_flags, newsp, 0,
 			(int __user *)parent_tidptr,
 			(int __user *)child_tidptr);
-}
-
-asmlinkage int rx_vfork(struct pt_regs *regs)
-{
-	return do_fork(CLONE_VFORK | CLONE_VM | SIGCHLD, regs->usp, regs,
-		       0, NULL, NULL);
-}
-
-/*
- * sys_execve() executes a new program.
- */
-asmlinkage int sys_execve(const char __user *ufilename, const char __user * __user *uargv,
-			  const char __user * __user *uenvp, int dummy, ...)
-{
-	struct pt_regs *regs = (struct pt_regs *)
-		((unsigned char *)&dummy + 8);
-	int error;
-	char *filename;
-
-	filename = getname(ufilename);
-	error = PTR_ERR(filename);
-	if (IS_ERR(filename))
-		goto out;
-
-	error = do_execve(filename, uargv, uenvp, regs);
-	putname(filename);
-out:
-	return error;
 }
 
 unsigned long get_wchan(struct task_struct *p)

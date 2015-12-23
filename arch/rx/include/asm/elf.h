@@ -24,6 +24,7 @@ typedef unsigned long elf_fpregset_t;
  */
 #define ELF_CLASS	ELFCLASS32
 #define ELF_DATA	ELFDATA2LSB
+#define ELF_RX		173
 #define ELF_ARCH	EM_RX
 
 #define USE_ELF_CORE_DUMP
