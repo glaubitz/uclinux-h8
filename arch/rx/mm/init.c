@@ -114,7 +114,7 @@ void __init paging_init(void)
 void __init mem_init(void)
 {
 	unsigned long tmp;
-	extern char _etext, _stext, _sdata, _ebss, __init_begin, __init_end;
+	extern char _etext[], _stext[], _sdata[], _ebss[], __init_begin[], __init_end[];
 	extern unsigned long  _ramend, _ramstart;
 	unsigned long len;
 	unsigned long end_mem = (unsigned long)&_ramend;
@@ -132,13 +132,13 @@ void __init mem_init(void)
 	end_mem &= PAGE_MASK;
 	high_memory = (void *) end_mem;
 
-	max_mapnr = num_physpages = len >> PAGE_SHIFT;
+	max_mapnr = len >> PAGE_SHIFT;
 
 	totalram_pages = free_all_bootmem();
 
-	codek = (&_etext - &_stext) >> 10;
-	datak = (&_ebss - &_sdata) >> 10;
-	initk = (&__init_begin - &__init_end) >> 10;
+	codek = (_etext - _stext) >> 10;
+	datak = (_ebss - _sdata) >> 10;
+	initk = (__init_begin - __init_end) >> 10;
 
 	tmp = nr_free_pages() << PAGE_SHIFT;
 	printk(KERN_INFO "Memory available: %luk/%luk RAM, %luk/%luk ROM (%dk kernel code, %dk data)\n",
@@ -171,7 +171,7 @@ void free_initrd_mem(unsigned long start, unsigned long end)
 void free_initmem(void)
 {
 	unsigned long addr;
-	extern char __init_begin, __init_end;
+	extern char __init_begin[], __init_end[];
 
 	addr = PAGE_ALIGN((unsigned long)(&__init_begin));
 	/* next to check that the page we free is not a partial page */
