@@ -1,0 +1,224 @@
+#
+# For a description of the syntax of this configuration file,
+# see Documentation/kbuild/kconfig-language.txt.
+#
+
+config RX
+        def_bool y
+       	select EMBEDDED
+	select HAVE_CLK
+	select HAVE_SYSCALL_TRACEPOINTS
+	select HAVE_KERNEL_GZIP
+	select HAVE_DMA_ATTRS
+	select HAVE_GENERIC_DMA_COHERENT
+ 
+config MMU
+	def_bool n
+
+config SWAP
+	def_bool n
+
+config ZONE_DMA
+	def_bool n
+
+config FPU
+	def_bool n
+
+config RWSEM_GENERIC_SPINLOCK
+	def_bool y
+
+config RWSEM_XCHGADD_ALGORITHM
+	def_bool n
+
+config ARCH_HAS_ILOG2_U32
+	def_bool n
+
+config ARCH_HAS_ILOG2_U64
+	def_bool n
+
+config GENERIC_FIND_NEXT_BIT
+	def_bool y
+
+config GENERIC_HWEIGHT
+	def_bool y
+
+config GENERIC_HARDIRQS
+	def_bool y
+
+config GENERIC_CALIBRATE_DELAY
+	def_bool y
+
+config GENERIC_TIME
+	def_bool y
+
+config GENERIC_BUG
+        bool
+        depends on BUG
+
+config GENERIC_CSUM
+        def_bool y
+
+config NEED_SG_DMA_LENGTH
+        def_bool y
+
+config TIME_LOW_RES
+	def_bool y
+
+config NO_IOPORT
+	def_bool y
+
+config NO_DMA
+	def_bool n
+
+config ISA
+       def_bool n
+
+config PCI
+	bool
+	default n
+
+config HZ
+	int
+	default 100
+
+config GENERIC_IRQ_SHOW
+       def_bool y
+
+source "init/Kconfig"
+
+source "kernel/Kconfig.freezer"
+
+menu "Processor type and features"
+
+source "kernel/time/Kconfig"
+
+choice
+	prompt "Platform"
+	default RX_GDB_SIM
+
+config RX_GDB_SIM
+	bool "GDB Simulator"
+	select CPU_RX610
+	help
+	  GDB Simulator
+
+config TKDN_RX62N
+	bool "TKDN-RX62N-BRD"
+	select CPU_RX62N
+	help
+	  TokushuDenshiKairo Inc, Ultimate RX62N Board (NP1040)
+
+config RXMEGA
+	bool "FRK-62N w/ RX-MEGA"
+	select CPU_RX62N
+	help
+	  CQ publising, FRK-RX62N with TokushuDenshiKairo Inc, RX-MEGA expantion board.
+
+config AP_RX64M
+	bool "AP-RX64M-0A"
+	select CPU_RX64M
+endchoice
+
+config CPU_RX610
+       bool
+       select RX_IPR
+
+config CPU_RX62N
+       bool
+       select RX_ICUA
+
+config CPU_RX64M
+       bool
+       select RXV2
+       select RX_ICUA
+
+config RX_IPR
+       bool
+
+config RX_ICUA
+       bool
+
+config CPU_LITTLE_ENDIAN
+       def_bool y
+
+config INPUT_CLOCK_FREQ
+       int "Input clock frequency"
+
+config PCLK_MULT
+       int "Peripheral clock multiple rate"
+
+choice
+	prompt "Kernel executes from"
+	---help---
+	  Choose the memory type that the kernel will be running in.
+
+config RAMKERNEL
+	bool "RAM"
+	help
+	  The kernel will be resident in RAM when running.
+
+config ROMKERNEL
+	bool "ROM"
+	help
+	  The kernel will be resident in FLASH/ROM when running.
+endchoice
+
+menu "memory map"
+config ROMSTART
+       depends on ROMKERNEL
+       hex "ROM start address"
+config ROMEND
+       depends on ROMKERNEL
+       hex "ROM end address"
+config RAMSTART
+       hex "RAM start address"
+config RAMEND
+       hex "RAM end address"
+config INITIAL_STACK
+       hex "Initial stack address"
+config BOOT_LINK_OFFSET
+       hex "Link offset of zImage"
+endmenu
+
+choice
+	prompt "Timer"
+config RX_CMT
+	bool "CMT"
+endchoice
+
+config RX_CMT_CH
+       int "Channel"
+       depends on RX_CMT
+       help 
+         unit0-channel0 = 0
+         unit0-channel1 = 1
+         unit1-channel0 = 2
+         unit1-channel1 = 3
+
+config PREEMPT
+	bool "Preemptible Kernel"
+	default n
+
+source "mm/Kconfig"
+
+endmenu
+
+menu "Executable file formats"
+
+source "fs/Kconfig.binfmt"
+
+endmenu
+
+source "net/Kconfig"
+
+source "drivers/Kconfig"
+
+source "fs/Kconfig"
+
+source "arch/rx/Kconfig.debug"
+
+source "security/Kconfig"
+
+source "crypto/Kconfig"
+
+source "lib/Kconfig"

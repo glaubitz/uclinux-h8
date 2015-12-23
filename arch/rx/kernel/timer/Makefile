@@ -1,0 +1,1 @@
+obj-$(CONFIG_RX_CMT) = cmt.o
