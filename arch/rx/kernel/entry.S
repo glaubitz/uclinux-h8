@@ -108,10 +108,7 @@ work_pending:
 	bra	resume_userspace
 work_resched:
 	bsr	schedule
-	clrpsw	i
-	mov	TI_FLAGS[r13],r14
-	tst	#_TIF_WORK_MASK,r14
-	bne	work_pending
+	bra	resume_userspace
 restore_all:
 	mov.l	OFF_USP[r0],r1
 	mvtc	r1,usp

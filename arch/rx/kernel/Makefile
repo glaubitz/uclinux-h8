@@ -4,8 +4,7 @@
 
 extra-y := vmlinux.lds
 
-obj-y := head.o process.o traps.o irq.o time.o signal.o \
-         setup.o syscalls.o entry.o ptrace.o dma-nommu.o \
-	 timer/ cpu/
+obj-y := head.o process.o traps.o irq.o signal.o \
+         setup.o syscalls.o entry.o ptrace.o dma-nommu.o
 
-obj-$(CONFIG_EARLY_PRINTK) += early-printk.o
+obj-$(CONFIG_RX_GDB_SIM) += sim-console.o

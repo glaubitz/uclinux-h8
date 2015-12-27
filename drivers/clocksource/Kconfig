@@ -586,6 +586,9 @@ config H8300_TPU
 	  This enables the clocksource for the H8300 platform with the
 	  H8S2678 CPU.
 
+config RX_TPU
+	bool
+
 config CLKSRC_IMX_GPT
 	bool "Clocksource using i.MX GPT" if COMPILE_TEST
 	depends on (ARM || ARM64) && HAVE_CLK

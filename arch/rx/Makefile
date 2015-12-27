@@ -19,12 +19,22 @@ KBUILD_AFLAGS += -Wa,-mcpu=rxv2
 LIBGCC := $(shell $(CROSS-COMPILE)$(CC) $(KBUILD_CFLAGS) -print-libgcc-file-name)
 
 core-y	+= arch/$(ARCH)/kernel/ \
-	   arch/$(ARCH)/mm/ \
-           arch/$(ARCH)/boards/ \
-	   arch/$(ARCH)/lib/ 
-libs-y	+= $(LIBGCC)
+	   arch/$(ARCH)/mm/
+
+ifneq '$(CONFIG_RX_BUILTIN_DTB)' '""'
+core-y += arch/$(ARCH)/boot/dts/
+endif
+
+libs-y	+= arch/$(ARCH)/lib/ $(LIBGCC)
 
 boot := arch/$(ARCH)/boot
+
+%.dtb %.dtb.S %.dtb.o: | scripts
+	$(Q)$(MAKE) $(build)=arch/$(ARCH)/boot/dts arch/$(ARCH)/boot/dts/$@
+
+PHONY += dtbs
+dtbs: scripts
+	$(Q)$(MAKE) $(build)=arch/$(ARCH)/boot/dts
 
 archmrproper:
 
