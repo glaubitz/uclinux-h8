@@ -28,6 +28,8 @@ startup:
 	sub	r1,r3
 	smovf
 	sub	r4,r4
+#else
+	mov	r1,r4
 #endif
 #else
 	/* setup args */
