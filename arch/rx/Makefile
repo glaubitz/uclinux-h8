@@ -9,7 +9,6 @@
 #
 
 KBUILD_CFLAGS += $(cflags-y)
-KBUILD_CFLAGS += -g
 KBUILD_CFLAGS += -D__linux__
 KBUILD_CFLAGS += -DUTS_SYSNAME=\"uClinux\"
 LDFLAGS += $(ldflags-y)
