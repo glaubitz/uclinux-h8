@@ -5,6 +5,7 @@ endif
 obj-y += $(BUILTIN_DTB)
 
 dtb-$(CONFIG_RX_SIM) := rx_sim.dtb
+dtb-$(CONFIG_TKDN_RX62N) := tkdn-rx62n.dtb
 
 dtstree		:= $(srctree)/$(src)
 dtb-$(CONFIG_OF_ALL_DTBS) := $(patsubst $(dtstree)/%.dts,%.dtb, $(wildcard $(dtstree)/*.dts))
