@@ -14,8 +14,9 @@ subdir- := compressed
 
 OBJCOPYFLAGS_vmlinux.srec := -Osrec -R .note.gnu.build-id
 OBJCOPYFLAGS_vmlinux.bin  := -Obinary -R .note.gnu.build-id
+OBJCOPYFLAGS_zImage := -O binary -R .note -R .comment -R .stab -R .stabstr -S
 
-CONFIG_MEMORY_START	?= 0x08000000
+CONFIG_RAM_START	?= 0x08000000
 CONFIG_BOOT_LINK_OFFSET	?= 0x00800000
 CONFIG_ENTRY_OFFSET	?= 0x00001000
 
@@ -30,11 +31,11 @@ $(obj)/zImage: $(obj)/compressed/vmlinux FORCE
 $(obj)/compressed/vmlinux: FORCE
 	$(Q)$(MAKE) $(build)=$(obj)/compressed $@
 
-KERNEL_LOAD	:= $(shell /bin/bash -c 'printf "0x%08x" \
+UIMAGE_LOADADDR	:= $(shell /bin/bash -c 'printf "0x%08x" \
 		     $$[$(CONFIG_MEMORY_START) + \
 			$(CONFIG_ENTRY_OFFSET)]')
 
-KERNEL_ENTRY	:= $(shell /bin/bash -c 'printf "0x%08x" \
+UIMAGE_ENTRYADDR	:= $(shell /bin/bash -c 'printf "0x%08x" \
 		     $$[$(CONFIG_MEMORY_START) + \
 			$(CONFIG_ENTRY_OFFSET)]')
 

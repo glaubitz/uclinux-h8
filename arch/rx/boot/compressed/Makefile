@@ -4,29 +4,23 @@
 # create a compressed vmlinux image from the original vmlinux
 #
 
-targets		:= vmlinux vmlinux.bin vmlinux.bin.gz \
-		   vmlinux.bin.bz2 vmlinux.bin.lzma \
-		   vmlinux.bin.xz vmlinux.bin.lzo \
-		   head.o misc.o piggy.o
+targets		:= vmlinux vmlinux.bin vmlinux.bin.gz head.o misc.o piggy.o
 
-OBJECTS = $(obj)/head_$(BITS).o $(obj)/misc.o $(obj)/cache.o
+OBJECTS = $(obj)/head.o $(obj)/misc.o
 
 #
 # IMAGE_OFFSET is the load offset of the compression loader
+# Assign dummy values if these 2 variables are not defined,
+# in order to suppress error message.
 #
-IMAGE_OFFSET	:= $(shell /bin/bash -c 'printf "0x%08x" \
-		     $$[$(CONFIG_MEMORY_START)  + \
-			$(CONFIG_BOOT_LINK_OFFSET)]')
+CONFIG_RAM_START     ?= 0x08000000
+CONFIG_BOOT_LINK_OFFSET ?= 0x00800000
 
-LIBGCC	:= $(shell $(CC) $(KBUILD_CFLAGS) -print-libgcc-file-name)
+IMAGE_OFFSET := $(shell printf "0x%08x" $$(($(CONFIG_RAM_START)+$(CONFIG_BOOT_LINK_OFFSET))))
 
-ifeq ($(CONFIG_MCOUNT),y)
-ORIG_CFLAGS := $(KBUILD_CFLAGS)
-KBUILD_CFLAGS = $(subst -pg, , $(ORIG_CFLAGS))
-endif
-
-LDFLAGS_vmlinux := --oformat $(ld-bfd) -Ttext $(IMAGE_OFFSET) -e startup \
-		   -T $(obj)/../../kernel/vmlinux.lds
+LIBGCC := $(shell $(CROSS-COMPILE)$(CC) $(KBUILD_CFLAGS) -print-libgcc-file-name)
+LDFLAGS_vmlinux := -Ttext $(IMAGE_OFFSET) -estartup -T $(obj)/vmlinux.lds \
+	--defsym output=$(CONFIG_RAM_START)
 
 $(obj)/vmlinux: $(OBJECTS) $(obj)/piggy.o $(LIBGCC) FORCE
 	$(call if_changed,ld)
@@ -35,22 +29,11 @@ $(obj)/vmlinux: $(OBJECTS) $(obj)/piggy.o $(LIBGCC) FORCE
 $(obj)/vmlinux.bin: vmlinux FORCE
 	$(call if_changed,objcopy)
 
-vmlinux.bin.all-y := $(obj)/vmlinux.bin
-
-$(obj)/vmlinux.bin.gz: $(vmlinux.bin.all-y) FORCE
+$(obj)/vmlinux.bin.gz: $(obj)/vmlinux.bin FORCE
 	$(call if_changed,gzip)
-$(obj)/vmlinux.bin.bz2: $(vmlinux.bin.all-y) FORCE
-	$(call if_changed,bzip2)
-$(obj)/vmlinux.bin.lzma: $(vmlinux.bin.all-y) FORCE
-	$(call if_changed,lzma)
-$(obj)/vmlinux.bin.xz: $(vmlinux.bin.all-y) FORCE
-	$(call if_changed,xzkern)
-$(obj)/vmlinux.bin.lzo: $(vmlinux.bin.all-y) FORCE
-	$(call if_changed,lzo)
 
-OBJCOPYFLAGS += -R .empty_zero_page
+LDFLAGS_piggy.o := -r --format binary --oformat elf32-rx-linux -T
+OBJCOPYFLAGS := -O binary
 
-LDFLAGS_piggy.o := -r --format binary --oformat $(ld-bfd) -T
-
-$(obj)/piggy.o: $(obj)/vmlinux.scr $(obj)/vmlinux.bin.$(suffix-y) FORCE
+$(obj)/piggy.o: $(obj)/vmlinux.scr $(obj)/vmlinux.bin.gz FORCE
 	$(call if_changed,ld)

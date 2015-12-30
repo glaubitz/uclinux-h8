@@ -9,7 +9,6 @@
  */
 
 #include <asm/uaccess.h>
-#include <asm/addrspace.h>
 #include <asm/page.h>
 
 /*
@@ -24,7 +23,7 @@
 
 extern char input_data[];
 extern int input_len;
-static unsigned char *output;
+extern unsigned char output[];
 
 static void error(char *m);
 
@@ -97,13 +96,10 @@ static void error(char *x)
 
 void decompress_kernel(void)
 {
-	unsigned long output_addr;
-
-	output = (unsigned char *)&_text+PAGE_SIZE;
 	free_mem_ptr = (unsigned long)&_end;
 	free_mem_end_ptr = free_mem_ptr + HEAP_SIZE;
 
 	puts("Uncompressing Linux... ");
-	decompress(input_data, input_len, NULL, NULL, output, NULL, error);
+	__decompress(input_data, input_len, NULL, NULL, output, 0, NULL, error);
 	puts("Ok, booting the kernel.\n");
 }
