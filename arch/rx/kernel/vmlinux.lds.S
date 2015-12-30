@@ -23,22 +23,24 @@ SECTIONS
 {
 #if defined(CONFIG_ROMKERNEL)
 	. = ROMTOP;
+	HEAD_TEXT_SECTION
 	_text = .;
 	_stext = . ;
 #else
-	. = RAMTOP + 0x1000;
+	. = RAMTOP;
+	HEAD_TEXT_SECTION
 	_text = .;
 	_stext = . ;
 #endif
         .text :
 	{
-	HEAD_TEXT
 	TEXT_TEXT
 	SCHED_TEXT
 	LOCK_TEXT
 	_etext = . ;
 	}
 	EXCEPTION_TABLE(16)
+	NOTES
 #if defined(CONFIG_ROMKERNEL)
 	INIT_TEXT_SECTION(PAGE_SIZE)
 	ROEND = .; 
