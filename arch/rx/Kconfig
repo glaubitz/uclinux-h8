@@ -90,6 +90,10 @@ config HZ
 	int
 	default 100
 
+config NR_CPUS
+	int
+	default 1
+
 config GENERIC_IRQ_SHOW
        def_bool y
 
@@ -98,8 +102,6 @@ source "init/Kconfig"
 source "kernel/Kconfig.freezer"
 
 menu "Processor type and features"
-
-source "kernel/time/Kconfig"
 
 choice
 	prompt "Platform"
@@ -141,26 +143,19 @@ config CPU_RX610
 config CPU_RX62N
        bool
        select RX_ICUA
+       select RX_TPU
+       select RX_CMT
 
 config CPU_RX64M
        bool
        select RXV2
        select RX_ICUA
 
-config RX_IPR
-       bool
-
 config RX_ICUA
        bool
 
 config CPU_LITTLE_ENDIAN
        def_bool y
-
-config INPUT_CLOCK_FREQ
-       int "Input clock frequency"
-
-config PCLK_MULT
-       int "Peripheral clock multiple rate"
 
 choice
 	prompt "Kernel executes from"
@@ -194,21 +189,6 @@ config INITIAL_STACK
 config BOOT_LINK_OFFSET
        hex "Link offset of zImage"
 endmenu
-
-choice
-	prompt "Timer"
-config RX_CMT
-	bool "CMT"
-endchoice
-
-config RX_CMT_CH
-       int "Channel"
-       depends on RX_CMT
-       help 
-         unit0-channel0 = 0
-         unit0-channel1 = 1
-         unit1-channel0 = 2
-         unit1-channel1 = 3
 
 config PREEMPT
 	bool "Preemptible Kernel"
