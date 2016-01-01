@@ -138,8 +138,8 @@ syscall_entry:
 	setpsw	i
 	mov.l	#~(THREAD_SIZE - 1),r13
 	and	r0,r13
-	mov.l	TI_FLAGS[r13],r14
-	tst	#_TIF_WORK_SYSCALL_MASK,r14
+	mov.l	TI_FLAGS[r13],r12
+	tst	#_TIF_WORK_SYSCALL_MASK,r12
 	bnz	4f
 1:	
 	cmp	#__NR_syscalls,r15
@@ -150,7 +150,7 @@ syscall_entry:
 	shll	#2,r15
 	add	#_sys_call_table,r15
 	mov.l	[r15],r15
-	mov.l	r7,[-r0]
+	mov.l	r14,[-r0]
 	mov.l	r5,[-r0]
 	jsr	r15
 	add	#8,r0
