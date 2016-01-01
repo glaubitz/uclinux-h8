@@ -223,8 +223,6 @@ static void do_signal(struct pt_regs *regs)
 {
 	struct ksignal ksig;
 
-	current->thread.esp0 = (unsigned long) regs;
-
 	if (get_signal(&ksig)) {
 		/* Whee!  Actually deliver the signal.  */
 		handle_signal(&ksig, regs);

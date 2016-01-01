@@ -251,7 +251,7 @@ void show_stack(struct task_struct *task, unsigned long *esp)
 
 void show_trace_task(struct task_struct *tsk)
 {
-	show_stack(tsk,(unsigned long *)tsk->thread.esp0);
+	show_stack(tsk,(unsigned long *)tsk->thread.sp);
 }
 
 void dump_stack(void)

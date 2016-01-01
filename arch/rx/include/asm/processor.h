@@ -33,7 +33,6 @@ struct thread_struct {
 	unsigned long  pc;
 	unsigned long  sp;		/* kernel stack pointer */
 	unsigned long  psw;		/* saved status register */
-	unsigned long  esp0;            /* points to SR of stack frame */
 	struct {
 		unsigned short *addr;
 		unsigned char inst;
@@ -44,7 +43,6 @@ struct thread_struct {
 	.pc = 0,						\
 	.sp  = sizeof(init_stack) + (unsigned long)init_stack,  \
 	.psw  = 0x00010000,					\
-	.esp0 = 0,						\
 	.breakinfo = {						\
 		.addr = (unsigned short *)-1,			\
 		.inst = 0					\
@@ -99,7 +97,8 @@ unsigned long get_wchan(struct task_struct *p);
 void show_trace(struct task_struct *tsk, unsigned long *sp,
 		struct pt_regs *regs);
 
-#define task_pt_regs(tsk) ((struct pt_regs *)(tsk)->thread.esp0 - 1)
+#define task_pt_regs(tsk) \
+	((struct pt_regs *)(task_stack_page(tsk) + THREAD_SIZE) - 1)
 #define	KSTK_EIP(tsk) (task_pt_regs(tsk)->pc)
 #define	KSTK_ESP(tsk) (task_pt_regs(tsk)->r[0])
 
