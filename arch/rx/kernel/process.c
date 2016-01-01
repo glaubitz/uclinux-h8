@@ -117,20 +117,6 @@ int copy_thread(unsigned long clone_flags,
 	return 0;
 }
 
-asmlinkage int sys_clone(struct pt_regs *regs)
-{
-	unsigned long clone_flags = regs->r[1];
-	unsigned long newsp = regs->r[2];
-	unsigned long parent_tidptr = regs->r[3];
-	unsigned long child_tidptr = regs->r[4];
-
-	if (!newsp)
-		newsp = regs->usp;
-	return do_fork(clone_flags, newsp, 0,
-			(int __user *)parent_tidptr,
-			(int __user *)child_tidptr);
-}
-
 unsigned long get_wchan(struct task_struct *p)
 {
 	int count = 0;
