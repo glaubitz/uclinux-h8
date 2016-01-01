@@ -26,6 +26,7 @@
 #include <linux/memblock.h>
 #include <linux/clocksource.h>
 #include <linux/clk-provider.h>
+#include <linux/screen_info.h>
 #include <asm/setup.h>
 #include <asm/irq.h>
 #include <asm/pgtable.h>
@@ -33,6 +34,10 @@
 unsigned long rom_length;
 unsigned long memory_start;
 unsigned long memory_end;
+
+#ifdef CONFIG_VT
+struct screen_info screen_info;
+#endif
 
 static struct resource code_resource = {
 	.name	= "Kernel code",
@@ -67,10 +72,9 @@ void __init rx_fdt_init(void *fdt)
 
 	early_init_dt_scan(fdt);
 	memblock_allow_resize();
-	if (*saved_command_line) {
+	if (*saved_command_line)
 		memcpy(boot_command_line, saved_command_line,
 		       sizeof(saved_command_line));
-	}
 }
 
 static void __init bootmem_init(void)
