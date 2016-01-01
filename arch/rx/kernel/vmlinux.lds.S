@@ -43,11 +43,11 @@ SECTIONS
 	NOTES
 #if defined(CONFIG_ROMKERNEL)
 	INIT_TEXT_SECTION(PAGE_SIZE)
+	RODATA
 	ROEND = .; 
 	__data_romtop = .;
 	. = RAMTOP;
 	_sdata = .;
-	RODATA
 	RW_DATA_SECTION(0, PAGE_SIZE, THREAD_SIZE)
 	_edata = .;
 #else
@@ -76,10 +76,6 @@ SECTIONS
 	_ebss = .;		/* uClinux MTD sucks */
 	_end = . ;
 	_ramstart = .;
-        .romfs :	
-	{
-		*(.romfs*)
-	}
 	. = RAMTOP + RAMSIZE;
 	_ramend = .;
 #if defined(CONFIG_ROMKERNEL)
