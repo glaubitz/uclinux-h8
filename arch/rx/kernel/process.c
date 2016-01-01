@@ -109,7 +109,8 @@ int copy_thread(unsigned long clone_flags,
 		*childregs = *current_pt_regs();
 		childregs->r[1] = 0;
 		p->thread.pc = (unsigned long)ret_from_fork;
-		childregs->usp  = usp;
+		if(usp)
+			childregs->usp  = usp;
 	}
 
 	p->thread.sp = (unsigned long)childregs;
