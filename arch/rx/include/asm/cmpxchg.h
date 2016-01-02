@@ -17,17 +17,17 @@ static inline unsigned long __xchg(unsigned long x,
 	case 1:
 		__asm__ __volatile__
 			("xchg %1.b,%0"
-			 : "=&r" (x), "=Q" (*__xg(ptr)));
+			 : "+r" (x), "+Q" (*__xg(ptr)));
 		break;
 	case 2:
 		__asm__ __volatile__
 			("xchg %1.w,%0"
-			 : "=&r" (x), "=Q" (*__xg(ptr)));
+			 : "+r" (x), "+Q" (*__xg(ptr)));
 		break;
 	case 4:
 		__asm__ __volatile__
 			("xchg %1.l,%0"
-			 : "=&r" (x), "=Q" (*__xg(ptr)));
+			 : "+r" (x), "+Q" (*__xg(ptr)));
 		break;
 	default:
 		__bad_xchg_size();
