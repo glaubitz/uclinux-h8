@@ -589,6 +589,9 @@ config H8300_TPU
 config RX_TPU
 	bool
 
+config RX_CMT
+	bool
+
 config CLKSRC_IMX_GPT
 	bool "Clocksource using i.MX GPT" if COMPILE_TEST
 	depends on (ARM || ARM64) && HAVE_CLK
