@@ -4,7 +4,7 @@
 # create a compressed vmlinux image from the original vmlinux
 #
 
-targets		:= vmlinux vmlinux.bin vmlinux.bin.gz head.o misc.o piggy.o
+targets		:= vmlinux vmlinux.bin head.o misc.o piggy.o
 
 OBJECTS = $(obj)/head.o $(obj)/misc.o
 
@@ -29,11 +29,14 @@ $(obj)/vmlinux: $(OBJECTS) $(obj)/piggy.o $(LIBGCC) FORCE
 $(obj)/vmlinux.bin: vmlinux FORCE
 	$(call if_changed,objcopy)
 
-$(obj)/vmlinux.bin.gz: $(obj)/vmlinux.bin FORCE
-	$(call if_changed,gzip)
+suffix-$(CONFIG_KERNEL_GZIP)    := gzip
+suffix-$(CONFIG_KERNEL_LZO)     := lzo
+
+$(obj)/vmlinux.bin.$(suffix-y): $(obj)/vmlinux.bin FORCE
+	$(call if_changed,$(suffix-y))
 
 LDFLAGS_piggy.o := -r --format binary --oformat elf32-rx-linux -T
 OBJCOPYFLAGS := -O binary
 
-$(obj)/piggy.o: $(obj)/vmlinux.scr $(obj)/vmlinux.bin.gz FORCE
+$(obj)/piggy.o: $(obj)/vmlinux.scr $(obj)/vmlinux.bin.$(suffix-y) FORCE
 	$(call if_changed,ld)
