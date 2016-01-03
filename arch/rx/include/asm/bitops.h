@@ -80,7 +80,7 @@ static __inline__ int FNNAME(int nr, volatile void * addr)	\
 			 OP " %3, %1.b\n\t"			\
 			 "scnz.l %0\n\t"			\
 			 "mvtc %2, psw"				\
-			 : "=r"(result),"+m"(*b_addr),"=r"(psw)	\
+			 : "=r"(result),"+m"(*b_addr),"=&r"(psw)	\
 			 :"ri"(nr & 7):"cc");			\
 	return result;						\
 }								\
