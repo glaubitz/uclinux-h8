@@ -51,7 +51,7 @@
 		cpu@0 {
 			compatible = "renesas,rx";
 			clock-frequency = <96000000>;
-			mem-cycle = <6>;
+			mem-cycle = <1>;
 		};
 	};
 	memory@08000000 {
@@ -93,5 +93,18 @@
 		interrupts = <218 0>, <219 0>, <220 0>, <221 0>;
 		clocks = <&pclk>;
 		clock-names = "sci_ick";
+	};
+	ether: ethernet@000c0000 {
+		compatible = "renesas,ether-rx62n";
+		reg = <0x000c0000 0x200>;
+		interrupts = <32 0>;
+		phy-mode = "rmii";
+		phy-handle = <&phy1>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		phy1: ethernet-phy@0 {
+		      reg = <0>;
+		      interrupt-parent = <&rxicu>;
+		};
 	};
 };

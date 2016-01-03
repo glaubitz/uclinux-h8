@@ -65,20 +65,19 @@
 		interrupt-controller;
 		reg = <0x00087000 0x600>;
 	};
-	
+	cmt: timer@00088000 {
+		compatible = "renesas,rx-cmt";
+		reg = <0x00088000 0x70>;
+		clocks = <&pclk>;
+		clock-names = "fck";
+		interrupts = <28 0>;
+	};
 	tpu: timer@00088100 {
 		compatible = "renesas,rx-tpu";
 		reg = <0x00088100 0x70>;
 		clocks = <&pclk>;
 		clock-names = "fck";
 	};
-	cmt: timer@00088000 {
-		compatible = "renesas,rx-cmt";
-		reg = <0x00088000 0x70>;
-		clocks = <&pclk>;
-		interrupts = <28 0>;
-	};
-		
 	sci0: serial@00088240 {
 		compatible = "renesas,sci";
 		reg = <0x00088240 8>;
