@@ -594,6 +594,9 @@ static void sci_start_tx(struct uart_port *port)
 	if (!s->chan_tx || port->type == PORT_SCIFA || port->type == PORT_SCIFB) {
 		/* Set TIE (Transmit Interrupt Enable) bit in SCSCR */
 		ctrl = serial_port_in(port, SCSCR);
+		if (serial_port_in(port, SCxSR) & SCxSR_TEND(port))
+			/* Force IRQ request */
+			serial_port_out(port, SCSCR, 0);
 		serial_port_out(port, SCSCR, ctrl | SCSCR_TIE);
 	}
 }
