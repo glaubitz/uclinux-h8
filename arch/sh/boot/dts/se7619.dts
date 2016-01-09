@@ -1,0 +1,93 @@
+ /dts-v1/;
+ / {
+	 compatible = "renesas,se7619";
+	 #address-cells = <1>;
+	 #size-cells = <1>;
+	 interrupt-parent = <&shintc>;
+ 
+	 chosen {
+		 bootargs = "console=ttySC2,38400";
+		 stdout-path = &sci2;
+	 };
+	 aliases {
+		 serial0 = &sci0;
+		 serial1 = &sci1;
+		 serial2 = &sci2;
+	 };
+ 
+         oclk: oscillator {
+                 #clock-cells = <0>;
+                 compatible = "fixed-clock";
+                 clock-frequency = <31250000>;
+                 clock-output-names = "osc";
+         };
+         pllclk: pllclk {
+                 compatible = "renesas,sh7619-pll-clock";
+                 clocks = <&oclk>;
+                 #clock-cells = <0>;
+                 reg = <0xf815ff80 2>, <0xf815ff84 4>;
+         };
+         iclk: iclk {
+                 compatible = "fixed-factor-clock";
+                 clocks = <&pllclk>;
+                 #clock-cells = <0>;
+                 clock-div = <1>;
+                 clock-mult = <1>;
+         };
+         pclk: pclk {
+                 compatible = "renesas,sh7619-div-clock";
+                 clocks = <&pllclk>;
+                 #clock-cells = <0>;
+                 reg = <0xf815ff80 2>;
+         };
+	 memory@0c000000 {
+		 device_type = "memory";
+		 reg = <0x0c000000 0x2000000>;
+	 };
+ 
+	 cpus {
+		 #address-cells = <1>;
+		 #size-cells = <0>;
+		 cpu@0 {
+			 compatible = "renesas,superh";
+			 clock-frequency = <125000000>;
+		 };
+	 };
+
+	 shintc: interrupt-controller@0 {
+		 compatible = "renesas,sh-intc";
+		 #interrupt-cells = <2>;
+		 interrupt-controller;
+	 };
+
+	 cmt0: timer@f84a0070 {
+	 	compatible = "renesas,cmt-16";
+		reg = <0xf84a0070 16>;
+		interrupts = <86 0>, <87 0>;
+		clocks = <&pclk>;
+		clock-names = "fck";
+		renesas,channels-mask = <0x03>;
+	};
+ 
+	 sci0: serial@f8400000 {
+		 compatible = "renesas,sh2-scif";
+		 reg = <0xf8400000 0x100>;
+		 interrupts = <88 0>;
+		 clocks = <&pclk>;
+		 clock-names = "sci_ick";
+	 };
+	 sci1: serial@f8410000 {
+		 compatible = "renesas,sh2-scif";
+		 reg = <0xf8410000 0x100>;
+		 interrupts = <92 0>;
+		 clocks = <&pclk>;
+		 clock-names = "sci_ick";
+	 };
+	 sci2: serial@f8420000 {
+		 compatible = "renesas,sh2-scif";
+		 reg = <0xf8420000 0x100>;
+		 interrupts = <96 0>;
+		 clocks = <&pclk>;
+		 clock-names = "sci_ick";
+	 };
+ };
