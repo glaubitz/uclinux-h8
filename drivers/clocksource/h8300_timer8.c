@@ -29,9 +29,7 @@
 
 #define FLAG_STARTED (1 << 3)
 
-#define bset(b, a) iowrite8(ioread8(a) | (1 << (b)), (a))
-#define bclr(b, a) iowrite8(ioread8(a) & ~(1 << (b)), (a))
-#define SCALE 64
+ #define SCALE 64
 
 #define bset(b, a) iowrite8(ioread8(a) | (1 << (b)), (a))
 #define bclr(b, a) iowrite8(ioread8(a) & ~(1 << (b)), (a))
@@ -80,6 +78,7 @@ static int timer8_enable(struct timer8_priv *p)
 static int timer8_start(struct timer8_priv *p)
 {
 	int ret;
+
 	if ((p->flags & FLAG_STARTED))
 		return 0;
 
@@ -175,35 +174,31 @@ static void __init h8300_8timer_init(struct device_node *node)
 	if (IS_ERR(clk)) {
 		pr_err("failed to get clock for clockevent\n");
 		return;
+	}
+
 	base = of_iomap(node, 0);
 	if (!base) {
 		pr_err("failed to map registers for clockevent\n");
 		goto free_clk;
 	}
+
 	irq = irq_of_parse_and_map(node, 0);
 	if (!irq) {
 		pr_err("failed to get irq for clockevent\n");
 		goto unmap_reg;
+	}
+
 	timer8_priv.mapbase = base;
 	timer8_priv.rate = clk_get_rate(clk) / SCALE;
 	if (!timer8_priv.rate) {
 		pr_err("Failed to get rate for the clocksource\n");
 		goto unmap_reg;
 	}
-	if (request_irq(irq, timer8_interrupt, IRQF_TIMER,
-			timer8_priv.ced.name, &timer8_priv) < 0) {
-	timer8_priv.rate = clk_get_rate(clk);
-	if (!timer8_priv.rate) {
-		pr_err("Failed to get rate for the clocksource\n");
-		goto unmap_reg;
-	}
-	timer8_priv.rate /= SCALE;
+
 	if (request_irq(irq, timer8_interrupt,
 			IRQF_TIMER, timer8_priv.ced.name, &timer8_priv) < 0) {
 		pr_err("failed to request irq %d for clockevent\n", irq);
 		goto unmap_reg;
-	clockevents_config_and_register(&timer8_priv.ced,
-
 	clockevents_config_and_register(&timer8_priv.ced,
 					timer8_priv.rate, 1, 0x0000ffff);
 

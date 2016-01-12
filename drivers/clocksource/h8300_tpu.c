@@ -18,7 +18,6 @@
 #define TCR	0x0
 #define TSR	0x5
 #define TCNT	0x6
-#define TCFV	0x10
 
 #define TCFV	0x10
 
