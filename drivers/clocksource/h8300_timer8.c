@@ -49,7 +49,6 @@ static irqreturn_t timer8_interrupt(int irq, void *dev_id)
 		iowrite16be(0x0000, p->mapbase + _8TCR);
 
 	p->ced.event_handler(&p->ced);
-
 	bclr(CMFA, p->mapbase + _8TCSR);
 
 	return IRQ_HANDLED;
@@ -199,6 +198,8 @@ static void __init h8300_8timer_init(struct device_node *node)
 			IRQF_TIMER, timer8_priv.ced.name, &timer8_priv) < 0) {
 		pr_err("failed to request irq %d for clockevent\n", irq);
 		goto unmap_reg;
+	}
+	clk_prepare_enable(clk);
 	clockevents_config_and_register(&timer8_priv.ced,
 					timer8_priv.rate, 1, 0x0000ffff);
 

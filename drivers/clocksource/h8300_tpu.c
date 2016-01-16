@@ -34,7 +34,6 @@ struct tpu_priv {
 static inline unsigned long read_tcnt32(struct tpu_priv *p)
 {
 	unsigned long tcnt;
-
 	tcnt = ioread16be(p->mapbase1 + TCNT) << 16;
 	tcnt |= ioread16be(p->mapbase2 + TCNT);
 	return tcnt;
@@ -155,6 +154,7 @@ static void __init h8300_tpu_init(struct device_node *node)
 	if (of_property_read_u8(node, "renesas,tstr", &tstr_val))
 		tpu_priv.tstr_val = tstr_val;
 
+	clk_prepare_enable(clk);
 	clocksource_register_hz(&tpu_priv.cs, clk_get_rate(clk) / 64);
 
 	return;

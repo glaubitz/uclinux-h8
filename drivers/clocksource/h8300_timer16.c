@@ -172,6 +172,7 @@ static void __init h8300_16timer_init(struct device_node *node)
 		goto unmap_comm;
 	}
 
+	clk_prepare_enable(clk);
 	clocksource_register_hz(&timer16_priv.cs,
 				clk_get_rate(clk) / 8);
 	return;
