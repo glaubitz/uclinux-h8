@@ -25,6 +25,8 @@ struct tpu_priv {
 	struct clocksource cs;
 	void __iomem *mapbase1;
 	void __iomem *mapbase2;
+	void __iomem *tstr;
+	u8 tstr_val;
 	raw_spinlock_t lock;
 	unsigned int cs_enabled;
 };
@@ -83,12 +85,11 @@ static int tpu_clocksource_enable(struct clocksource *cs)
 	struct tpu_priv *p = cs_to_priv(cs);
 
 	WARN_ON(p->cs_enabled);
-
 	iowrite16be(0, p->mapbase1 + TCNT);
 	iowrite16be(0, p->mapbase2 + TCNT);
 	iowrite8(0x0f, p->mapbase1 + TCR);
 	iowrite8(0x03, p->mapbase2 + TCR);
-
+	iowrite8(p->tstr_val, p->tstr);
 	p->cs_enabled = true;
 	return 0;
 }
@@ -99,8 +100,7 @@ static void tpu_clocksource_disable(struct clocksource *cs)
 
 	WARN_ON(!p->cs_enabled);
 
-	iowrite8(0, p->mapbase1 + TCR);
-	iowrite8(0, p->mapbase2 + TCR);
+	iowrite8(0x00, p->tstr);
 	p->cs_enabled = false;
 }
 
@@ -122,7 +122,9 @@ static struct tpu_priv tpu_priv = {
 static void __init h8300_tpu_init(struct device_node *node)
 {
 	void __iomem *base[2];
+	void __iomem *tstr;
 	struct clk *clk;
+	u8 tstr_val;
 
 	clk = of_clk_get(node, 0);
 	if (IS_ERR(clk)) {
@@ -140,16 +142,27 @@ static void __init h8300_tpu_init(struct device_node *node)
 		pr_err("failed to map registers for clocksource\n");
 		goto unmap_L;
 	}
+	tstr = of_iomap(node, 2);
+	if (!tstr) {
+		pr_err("failed to map registers for clocksource\n");
+		goto unmap_H;
+	}
 
 	tpu_priv.mapbase1 = base[CH_L];
 	tpu_priv.mapbase2 = base[CH_H];
+	tpu_priv.tstr = tstr;
+
+	if (of_property_read_u8(node, "renesas,tstr", &tstr_val))
+		tpu_priv.tstr_val = tstr_val;
 
 	clocksource_register_hz(&tpu_priv.cs, clk_get_rate(clk) / 64);
 
 	return;
 
-unmap_L:
+unmap_H:
 	iounmap(base[CH_H]);
+unmap_L:
+	iounmap(base[CH_L]);
 free_clk:
 	clk_put(clk);
 }
