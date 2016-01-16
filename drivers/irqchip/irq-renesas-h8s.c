@@ -41,7 +41,6 @@ static const unsigned char ipr_table[] = {
 };
 
 #define ctrl_bclr16(b, a) iowrite16be(ioread16be(a) & ~(1 << (b)), a)
-#define ctrl_bset16(b, a) iowrite16be(ioread16be(a) | 1 << (b), a)
 
 static void h8s_mask(struct irq_data *data)
 {
@@ -50,8 +49,6 @@ static void h8s_mask(struct irq_data *data)
 	unsigned short pri;
 	int irq = data->irq;
 
-	if (irq < INTIRQ)
-		ctrl_bclr16(irq - 16, IER);
 	addr = IPRA + ((ipr_table[irq - 16] & 0xf0) >> 3);
 	pos = (ipr_table[irq - 16] & 0x0f) * 4;
 	pri = ~(0x000f << pos);
@@ -66,10 +63,6 @@ static void h8s_unmask(struct irq_data *data)
 	unsigned short pri;
 	int irq = data->irq;
 
-	if (irq < INTIRQ) {
-		ctrl_bclr16(irq - 16, ISR);
-		ctrl_bset16(irq - 16, IER);
-	}
 	addr = IPRA + ((ipr_table[irq - 16] & 0xf0) >> 3);
 	pos = (ipr_table[irq - 16] & 0x0f) * 4;
 	pri = ~(0x000f << pos);
@@ -92,7 +85,6 @@ static int h8s_set_type(struct irq_data *data, unsigned int type)
 	void __iomem *iscr;
 	int bit;
 	u16 iscr_val;
-
 	if (irq < INTIRQ) {
 		irq -= 16;
 		if (irq < 8) {
@@ -119,7 +111,6 @@ static int h8s_set_type(struct irq_data *data, unsigned int type)
 		}
 	}
 	return -EINVAL;
-
 }
 
 struct irq_chip h8s_irq_chip = {
@@ -134,7 +125,7 @@ struct irq_chip h8s_irq_chip = {
 static __init int irq_map(struct irq_domain *d, unsigned int virq,
 			  irq_hw_number_t hw_irq_num)
 {
-	irq_set_chip_and_handler(virq, &h8s_irq_chip, handle_simple_irq);
+	irq_set_chip_and_handler(virq, &h8s_irq_chip, handle_fasteoi_irq);
 	return 0;
 }
 
@@ -155,20 +146,17 @@ static int __init h8s_intc_of_init(struct device_node *intc,
 	BUG_ON(!pri_baseaddr || !ctl_baseaddr);
 
 	/* Internal interrupt priority is 0 (disable) */
-	/* IPRE to IPRK */
-	for (n = 0; n <= 'k' - 'e'; n++)
-		iowrite16be(0x0000, IPRE + (n * 2));
-	/* External interrupt priority is 1 (enable) */
-	/* IPRA to IPRD */
-	for (n = 0; n <= 'd' - 'a'; n++)
-		iowrite16be(0x1111, IPRA + (n * 2));
-
+	for (n = 0; n <= 'k' - 'a'; n++)
+		iowrite16be(0x0000, IPRA + (n * 2));
+	ioread16be(ISR);
+	iowrite16be(0x0000, ISR);
+	iowrite16be(0xffff, IER);
 	domain = irq_domain_add_linear(intc, NR_IRQS, &irq_ops, NULL);
 	BUG_ON(!domain);
 	irq_set_default_host(domain);
 	irq_domain_associate_many(domain, 0, 0, NR_IRQS);
-	if (of_property_read_u16(intc, "renesas,itsr", &itsr) == 0)
-		iowrite16(itsr, pri_baseaddr + 0x16);
+	if (of_property_read_u16(intc, "renesas,itsr", &itsr))
+		iowrite16be(itsr, pri_baseaddr + 0x16);
 	return 0;
 }
 
