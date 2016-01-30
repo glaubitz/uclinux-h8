@@ -117,11 +117,22 @@ static inline void zssync(struct uart_pmac_port *port)
 #define BRG_TO_BPS(brg, freq) ((freq) / 2 / ((brg) + 2))
 #define BPS_TO_BRG(bps, freq) ((((freq) + (bps)) / (2 * (bps))) - 2)
 
+#ifndef CONFIG_X68000
 #define ZS_CLOCK         3686400	/* Z8530 RTxC input clock rate */
+#else
+#define ZS_CLOCK         5000000	/* Z8530 RTxC input clock rate */
+#endif
 
 /* The Zilog register set */
 
 #define	FLAG	0x7e
+
+#ifndef CONFIG_X68000
+#define DATA_OFFSET     4
+#else
+#define DATA_OFFSET	2
+#endif
+
 
 /* Write Register 0 */
 #define	R0	0		/* Register selects */
@@ -243,6 +254,12 @@ static inline void zssync(struct uart_pmac_port *port)
 #define	CHRA	0x80	/* Reset channel A */
 #define	FHWRES	0xc0	/* Force hardware reset */
 
+#ifdef CONFIG_X68000
+#define R9_VAL  (MIE)
+#else
+#define R9_VAL  (MIE | NV)
+#endif
+
 /* Write Register 10 (misc control bits) */
 #define	BIT6	1	/* 6 bit/8bit sync */
 #define	LOOPMODE 2	/* SDLC Loop mode */
@@ -288,6 +305,12 @@ static inline void zssync(struct uart_pmac_port *port)
 #define	SSRTxC	0xa0	/* Set DPLL source = RTxC */
 #define	SFMM	0xc0	/* Set FM mode */
 #define	SNRZI	0xe0	/* Set NRZI mode */
+
+#ifdef CONFIG_X68000
+#define R14_VAL  (BRENAB | BRSRC)
+#else
+#define R14_VAL  (BRENAB)
+#endif
 
 /* Write Register 15 (external/status interrupt control) */
 #define	EN85C30	1	/* Enable some 85c30-enhanced registers */

@@ -464,7 +464,7 @@ static irqreturn_t pmz_interrupt(int irq, void *dev_id)
 		if (r3 & CHAEXT)
 			pmz_status_handle(uap_a);
 		if (r3 & CHARxIP)
-			push = pmz_receive_chars(uap_a);
+			push = push || pmz_receive_chars(uap_a);
 		if (r3 & CHATxIP)
 			pmz_transmit_chars(uap_a);
 		rc = IRQ_HANDLED;
@@ -489,7 +489,7 @@ static irqreturn_t pmz_interrupt(int irq, void *dev_id)
 		if (r3 & CHBEXT)
 			pmz_status_handle(uap_b);
 		if (r3 & CHBRxIP)
-			push = pmz_receive_chars(uap_b);
+			push = push || pmz_receive_chars(uap_b);
 		if (r3 & CHBTxIP)
 			pmz_transmit_chars(uap_b);
 		rc = IRQ_HANDLED;
@@ -864,13 +864,13 @@ static int __pmz_startup(struct uart_pmac_port *uap)
 		uap->curregs[R5] |= DTR;
 	uap->curregs[R12] = 0;
 	uap->curregs[R13] = 0;
-	uap->curregs[R14] = BRENAB;
+	uap->curregs[R14] = R14_VAL;
 
 	/* Clear handshaking, enable BREAK interrupts */
 	uap->curregs[R15] = BRKIE;
 
 	/* Master interrupt enable */
-	uap->curregs[R9] |= NV | MIE;
+	uap->curregs[R9] |= R9_VAL;
 
 	pmz_load_zsregs(uap, uap->curregs);
 
@@ -1031,7 +1031,7 @@ static void pmz_convert_to_zs(struct uart_pmac_port *uap, unsigned int cflag,
 			brg = BPS_TO_BRG(baud, ZS_CLOCK / 16);
 			uap->curregs[R12] = (brg & 255);
 			uap->curregs[R13] = ((brg >> 8) & 255);
-			uap->curregs[R14] = BRENAB;
+			uap->curregs[R14] = R14_VAL;
 		}
 		uap->flags &= ~PMACZILOG_FLAG_IS_EXTCLK;
 	}
@@ -1719,7 +1719,7 @@ static int __init pmz_init_port(struct uart_pmac_port *uap)
 	uap->port.flags    = 0;
 
 	uap->control_reg   = uap->port.membase;
-	uap->data_reg      = uap->control_reg + 4;
+	uap->data_reg      = uap->control_reg + DATA_OFFSET;
 	uap->port_type     = 0;
 
 	pmz_convert_to_zs(uap, CS8, 0, 9600);
