@@ -679,7 +679,7 @@ static int mangle_kernel_stack(struct pt_regs *regs, int formatvec,
 			 /* copy to the gap we'd made */
 			 "2: movel %4@+,%/a0@+\n\t"
 			 "   dbra %1,2b\n\t"
-			 "   bral ret_from_signal\n"
+			 "   jmp ret_from_signal\n"
 #endif
 			 : /* no outputs, it doesn't ever return */
 			 : "a" (sw), "d" (fsize), "d" (frame_offset/4-1),

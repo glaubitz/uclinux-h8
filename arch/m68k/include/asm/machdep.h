@@ -37,5 +37,5 @@ extern void hw_timer_init(irq_handler_t handler);
 extern unsigned long hw_timer_offset(void);
 
 extern void config_BSP(char *command, int len);
-
+extern void zs_console_register(void);
 #endif /* _M68K_MACHDEP_H */

@@ -33,6 +33,7 @@ SECTIONS {
 	.romvec : {
 		__rom_start = .;
 		_romvec = .;
+		vectors = .;
 		*(.romvec)
 		*(.data..initvect)
 	}

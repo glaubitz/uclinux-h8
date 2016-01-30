@@ -33,6 +33,7 @@
 #include <linux/initrd.h>
 #include <linux/root_dev.h>
 #include <linux/rtc.h>
+#include <linux/platform_device.h>
 
 #include <asm/setup.h>
 #include <asm/bootinfo.h>
@@ -149,7 +150,10 @@ void __init setup_arch(char **cmdline_p)
 #if defined(CONFIG_FRAMEBUFFER_CONSOLE) && defined(CONFIG_DUMMY_CONSOLE)
 	conswitchp = &dummy_con;
 #endif
-
+	parse_early_param();
+#if defined(CONFIG_X68000)
+	zs_console_register();
+#endif
 	/*
 	 * Give all the memory to the bootmap allocator, tell it to put the
 	 * boot mem_map at the start of memory.
@@ -166,6 +170,7 @@ void __init setup_arch(char **cmdline_p)
 	/*
 	 * Get kmalloc into gear.
 	 */
+	early_platform_driver_probe("earlyprintk",1,0);
 	paging_init();
 }
 

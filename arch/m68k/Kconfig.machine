@@ -135,6 +135,14 @@ config SUN3
 
 	  If you don't want to compile a kernel exclusively for a Sun 3, say N.
 
+config X68000
+	bool "SHARP X68000 support"
+	depends on !MMU
+	select M68000
+	select GENERIC_CLOCKEVENTS
+	help
+	  This option enbales support for SHARP X68000 series (exclude X68030).
+
 endif # M68KCLASSIC
 
 config PILOT
