@@ -6,13 +6,28 @@
 
 /***************************************************************************/
 
-void scc_puts(char *);
+static void reset(void)
+{
+	__asm__ volatile("movw #0x2700,%sr\n\t"
+			 "movel #0xff0000, %a0\n\t"
+			 "movel %a0@+,%sp\n\t"
+			 "movel %a0@+,%a1\n\t"
+			 "jmp %a1@");
+}
+
+static void poweroff(void)
+{
+	__raw_writeb(0x00, (void *)0xe8e00f);
+	__raw_writeb(0x0f, (void *)0xe8e00f);
+	__raw_writeb(0x0f, (void *)0xe8e00f);
+}
 
 void __init config_BSP(char *command, int len)
 {
 	mach_sched_init = hw_timer_init;
 	mach_hwclk = NULL;
-	mach_reset = NULL;
+	mach_reset = reset;
+	mach_power_off = poweroff;
 	memcpy(command, (void *)0x7e00, len);
 }
 
