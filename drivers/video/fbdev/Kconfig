@@ -2266,3 +2266,11 @@ config FB_SM712
 source "drivers/video/fbdev/omap/Kconfig"
 source "drivers/video/fbdev/omap2/Kconfig"
 source "drivers/video/fbdev/mmp/Kconfig"
+
+config FB_X68000
+	tristate "X68000 Frame Buffer support"
+	depends on FB && X68000
+	select FB_CFB_FILLRECT
+	select FB_CFB_COPYAREA
+	---help---
+	  Frame buffer driver for SHARP X68000 on board video.
