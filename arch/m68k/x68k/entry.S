@@ -63,9 +63,8 @@ ret_from_signal:
 ENTRY(system_call)
 	subq	#2,%sp
 	movel	%sp@(2),%sp@
-	movew	%sp@(6),%sp@(4)
-	movel	%sp@(8),%sp@(6)
-	movew	#4<<12,%sp@(8)
+	movel	%sp@(6),%sp@(4)
+	movew	#4<<12,%sp@(6)
 	SAVE_ALL_SYS
 	/* save top of frame*/
 	pea	%sp@
