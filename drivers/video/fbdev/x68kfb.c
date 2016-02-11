@@ -1,9 +1,9 @@
 /*
  *  linux/drivers/video/x68kfb.c -- X68000 frame buffer device
  *
- *      Copyright (C) 2002 James Simmons
+ *  Copyright (C) 2016 Yoshinori Sato
  *
- *	Copyright (C) 1997 Geert Uytterhoeven
+ *  Based on vfb.c
  *
  *  This file is subject to the terms and conditions of the GNU General Public
  *  License. See the file COPYING in the main directory of this archive for
@@ -163,7 +163,6 @@ static int x68kfb_check_var(struct fb_var_screeninfo *var,
 	 */
 	line_length =
 	    get_line_length(var->xres_virtual, var->bits_per_pixel);
-	printk("line_length = %d %d %d\n", line_length, var->xres_virtual, var->bits_per_pixel);
 	if (line_length * var->yres_virtual > videomemorysize)
 		return -ENOMEM;
 
