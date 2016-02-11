@@ -308,4 +308,11 @@ config USERIO
 
 	  If you are unsure, say N.
 
+config SERIO_X68K_MFP
+	tristate "SHARP X68000 MFP serial support"
+	depends on X68000 || COMPILE_TEST
+	help
+	  This selects support for the MFP serial on
+	  SHARP X68000.
+
 endif
