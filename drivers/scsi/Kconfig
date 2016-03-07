@@ -1525,6 +1525,12 @@ source "drivers/scsi/csiostor/Kconfig"
 
 source "drivers/scsi/pcmcia/Kconfig"
 
+config SCSI_SPC
+	tristate "Fujitsu MB89352 Support"
+	depends on SCSI
+	help
+	  This driver supports Fujitsu MB89352 based adapter.
+
 endif # SCSI_LOWLEVEL
 
 source "drivers/scsi/device_handler/Kconfig"
