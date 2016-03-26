@@ -3,6 +3,7 @@
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
 #include <asm/machdep.h>
+#include <asm/scsi_spc.h>
 
 /***************************************************************************/
 
@@ -31,7 +32,7 @@ void __init config_BSP(char *command, int len)
 	memcpy(command, (void *)0x7e00, len);
 }
 
-static struct resource scc_a_rsrcs[] = {
+struct resource scc_a_rsrcs[] = {
 	{
 		.flags = IORESOURCE_MEM,
 		.start = 0xe98005,
@@ -43,26 +44,59 @@ static struct resource scc_a_rsrcs[] = {
 		.start = 0x50,
 	},
 };
-
+		
 struct platform_device scc_a_pdev = {
 	.name           = "scc",
 	.id             = 0,
 	.num_resources  = ARRAY_SIZE(scc_a_rsrcs),
 	.resource       = scc_a_rsrcs,
 };
-EXPORT_SYMBOL(scc_a_pdev);
 
 struct platform_device scc_b_pdev = {
-	.name           = "scc",
-	.id             = 1,
-	.num_resources  = 0,
+       .name	       = "scc",
+       .id	       = 1,
+       .num_resources  = 0,
 };
-EXPORT_SYMBOL(scc_b_pdev);
+
+static struct resource spc_rsrcs[] = {
+	{
+		.flags = IORESOURCE_MEM,
+		.start = 0xe96020,
+		.end = 0xe96040,
+	},
+	
+	{
+		.flags = IORESOURCE_IRQ,
+		.start = 0x6c,
+	},
+};
+
+static struct spc_platform_data spc_platform_data = {
+	.scsiid = 7,
+	.parity = 0,
+	.delay = 1,
+};
+
+
+static struct platform_device spc_pdev = {
+	.name		= "spc",
+	.id		= 0,
+	.num_resources	= ARRAY_SIZE(spc_rsrcs),
+	.resource       = spc_rsrcs,
+	.dev = {
+		.platform_data = &spc_platform_data,
+	},
+};
+
+static struct platform_device *x68k_devices[] = {
+	&scc_a_pdev,
+	&spc_pdev,
+};
 
 static int __init x68k_platform_init(void)
 {
 	__raw_writeb(0, (void *)0xe86001);
-	platform_device_register(&scc_a_pdev);
+	platform_add_devices(x68k_devices, ARRAY_SIZE(x68k_devices));
 
 	return 0;
 }
