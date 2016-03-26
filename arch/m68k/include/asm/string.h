@@ -60,15 +60,21 @@ static inline int strcmp(const char *cs, const char *ct)
 
 #define __HAVE_ARCH_MEMMOVE
 extern void *memmove(void *, const void *, __kernel_size_t);
-
+ 
+#ifndef CONFIG_M68000
 #define memcmp(d, s, n) __builtin_memcmp(d, s, n)
+#endif
 
 #define __HAVE_ARCH_MEMSET
 extern void *memset(void *, int, __kernel_size_t);
+#ifndef CONFIG_M68000
 #define memset(d, c, n) __builtin_memset(d, c, n)
+#endif
 
 #define __HAVE_ARCH_MEMCPY
 extern void *memcpy(void *, const void *, __kernel_size_t);
+#ifndef CONFIG_M68000
 #define memcpy(d, s, n) __builtin_memcpy(d, s, n)
+#endif
 
 #endif /* _M68K_STRING_H_ */
