@@ -12,6 +12,7 @@ config SH_DEVICE_TREE
 	select OF_EARLY_FLATTREE
 	select CLKSRC_OF
 	select GENERIC_CALIBRATE_DELAY
+	select COMMON_CLK
 	help
 	  Select Board Described by Device Tree to build a kernel that
 	  does not hard-code any board-specific knowledge but instead uses
@@ -292,6 +293,7 @@ config SH_LANDISK
 	bool "LANDISK"
 	depends on CPU_SUBTYPE_SH7751R
 	select SYS_SUPPORTS_PCI
+	select SH_DEVICE_TREE
 	help
 	  I-O DATA DEVICE, INC. "LANDISK Series" support.
 

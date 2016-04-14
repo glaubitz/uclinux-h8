@@ -118,23 +118,19 @@ static void __init sh_of_mem_reserve(void)
 	early_init_fdt_scan_reserved_mem();
 }
 
-static void __init sh_of_time_init(void)
-{
-	pr_info("SH generic board support: scanning for clocksource devices\n");
-	clocksource_probe();
-}
-
 static void __init sh_of_setup(char **cmdline_p)
 {
-	unflatten_device_tree();
-
-	board_time_init = sh_of_time_init;
+	struct device_node *cpu;
+	int freq;
 
 	sh_mv.mv_name = of_flat_dt_get_machine_name();
 	if (!sh_mv.mv_name)
 		sh_mv.mv_name = "Unknown SH model";
 
 	sh_of_smp_probe();
+	cpu = of_find_node_by_name(NULL, "cpu");
+	if (!of_property_read_u32(cpu, "clock-frequency", &freq))
+		preset_lpj = freq / 500;
 }
 
 static int sh_of_irq_demux(int irq)

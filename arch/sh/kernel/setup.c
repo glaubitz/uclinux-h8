@@ -177,7 +177,12 @@ disable:
 #ifndef CONFIG_GENERIC_CALIBRATE_DELAY
 void calibrate_delay(void)
 {
+#ifndef CONFIG_OF
 	struct clk *clk = clk_get(NULL, "cpu_clk");
+#else
+	struct device_node *cpu = of_find_node_by_name(NULL, "cpu");
+	struct clk *clk = of_clk_get_by_name(cpu, NULL);
+#endif
 
 	if (IS_ERR(clk))
 		panic("Need a sane CPU clock definition!");
@@ -251,7 +256,11 @@ void __ref sh_fdt_init(phys_addr_t dt_phys)
 	/* Avoid calling an __init function on secondary cpus. */
 	if (done) return;
 
+#ifdef CONFIG_USE_BUILTIN_DTB
+	dt_virt = __dtb_start;
+#else
 	dt_virt = phys_to_virt(dt_phys);
+#endif
 
 	if (!dt_virt || !early_init_dt_scan(dt_virt)) {
 		pr_crit("Error: invalid device tree blob"
@@ -267,6 +276,9 @@ void __ref sh_fdt_init(phys_addr_t dt_phys)
 
 void __init setup_arch(char **cmdline_p)
 {
+#ifdef CONFIG_OF
+	unflatten_and_copy_device_tree();
+#endif
 	enable_mmu();
 
 	ROOT_DEV = old_decode_dev(ORIG_ROOT_DEV);
