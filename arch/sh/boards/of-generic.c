@@ -194,3 +194,7 @@ static int __init sh_of_device_init(void)
 	return 0;
 }
 arch_initcall_sync(sh_of_device_init);
+
+void intc_finalize(void)
+{
+}
