@@ -2862,12 +2862,16 @@ static int sci_init_single(struct platform_device *dev,
 	port->flags		= UPF_FIXED_PORT | UPF_BOOT_AUTOCONF | p->flags;
 	port->fifosize		= sci_port->params->fifosize;
 
+#if !defined(CONFIG_H8300)
 	if (port->type == PORT_SCI) {
 		if (sci_port->reg_size >= 0x20)
 			port->regshift = 2;
 		else
 			port->regshift = 1;
 	}
+#else
+	port->regshift = 0;
+#endif
 
 	/*
 	 * The UART port needs an IRQ value, so we peg this to the RX IRQ
