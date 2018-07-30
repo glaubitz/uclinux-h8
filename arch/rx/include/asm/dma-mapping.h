@@ -9,8 +9,4 @@ static inline struct dma_map_ops *get_dma_ops(struct device *dev)
 	return dma_ops;
 }
 
-#include <asm-generic/dma-coherent.h>
-#include <asm-generic/dma-mapping-common.h>
-
-
 #endif /* __ASM_RX_DMA_MAPPING_H */
