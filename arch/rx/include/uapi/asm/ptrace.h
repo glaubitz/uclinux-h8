@@ -1,5 +1,5 @@
-#ifndef __ASM_RX_PTRACE_H__
-#define __ASM_RX_PTRACE_H__
+#ifndef __UAPI_ASM_RX_PTRACE_H__
+#define __UAPI_ASM_RX_PTRACE_H__
 
 #ifndef __ASSEMBLY__
 

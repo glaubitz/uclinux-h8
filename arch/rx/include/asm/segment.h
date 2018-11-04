@@ -5,6 +5,7 @@
 typedef struct {
 	unsigned long seg;
 } mm_segment_t;
+
 #endif
 
 #endif

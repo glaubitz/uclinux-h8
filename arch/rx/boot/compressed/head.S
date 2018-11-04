@@ -10,10 +10,10 @@
 
 	.global	startup
 startup:
-	mov	#_stext,r0
+	mov	#__stext,r0
 	mov	r1,r6
-	mov	#_sbss,r1
-	mov	#_ebss,r3
+	mov	#__sbss,r1
+	mov	#__ebss,r3
 	sub	r1,r3
 	mov	#0,r2
 	sstr.b

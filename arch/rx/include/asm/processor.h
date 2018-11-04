@@ -78,17 +78,6 @@ static inline void prepare_to_copy(struct task_struct *tsk)
 }
 
 /*
- * Free current thread data structures etc..
- */
-static inline void exit_thread(void)
-{
-}
-
-static inline void flush_thread(void)
-{
-}
-
-/*
  * Return saved PC of a blocked thread.
  */
 #define thread_saved_pc(tsk)	(tsk->thread.pc)
@@ -96,9 +85,6 @@ static inline void flush_thread(void)
 unsigned long get_wchan(struct task_struct *p);
 void show_trace(struct task_struct *tsk, unsigned long *sp,
 		struct pt_regs *regs);
-
-#define task_pt_regs(tsk) \
-	((struct pt_regs *)(task_stack_page(tsk) + THREAD_SIZE) - 1)
 #define	KSTK_EIP(tsk) (task_pt_regs(tsk)->pc)
 #define	KSTK_ESP(tsk) (task_pt_regs(tsk)->r[0])
 

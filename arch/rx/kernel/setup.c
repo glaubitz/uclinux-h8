@@ -51,12 +51,6 @@ static struct resource bss_resource = {
 	.name	= "Kernel bss",
 };
 
-extern void *_ramstart, *_ramend;
-extern void *_stext, *_etext;
-extern void *_sdata, *_edata;
-extern void *_sbss, *_ebss;
-extern void *_end;
-
 void __init rx_fdt_init(void *fdt)
 {
 	char saved_command_line[512];
@@ -208,7 +202,7 @@ device_initcall(device_probe);
 void __init time_init(void)
 {
 	of_clk_init(NULL);
-	clocksource_probe();
+	timer_probe();
 }
 
 void __init calibrate_delay(void)

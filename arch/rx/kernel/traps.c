@@ -200,7 +200,6 @@ void die(const char *str, struct pt_regs *regs)
 	do_exit(SIGSEGV);
 }
 
-extern char _stext, _etext;
 #define check_kernel_text(addr) \
         ((addr >= (unsigned long)(&_stext)) && \
          (addr <  (unsigned long)(&_etext))) 
@@ -253,13 +252,6 @@ void show_trace_task(struct task_struct *tsk)
 {
 	show_stack(tsk,(unsigned long *)tsk->thread.sp);
 }
-
-void dump_stack(void)
-{
-	show_stack(NULL,NULL);
-}
-
-EXPORT_SYMBOL(dump_stack);
 
 asmlinkage void unhandled_exception(struct pt_regs *regs, unsigned int ex)
 {

@@ -1,7 +1,7 @@
 #ifndef _RX_IRQFLAGS_H_
 #define _RX_IRQFLAGS_H_
 
-static inline unsigned long arch_local_irq_save_flags(void)
+static inline unsigned long arch_local_save_flags(void)
 {
 	unsigned long iflag;
 	asm volatile ("mvfc psw, %0\n\t"
@@ -22,7 +22,7 @@ static inline void arch_local_irq_enable(void)
 static inline unsigned long arch_local_irq_save(void)
 {
 	unsigned long iflag;
-	iflag = arch_local_irq_save_flags();
+	iflag = arch_local_save_flags();
 	arch_local_irq_disable();
 	return iflag;
 }
@@ -43,7 +43,7 @@ static inline int arch_irqs_disabled_flags(unsigned long psw)
 
 static inline int arch_irqs_disabled(void)
 {
-	return arch_irqs_disabled_flags(arch_local_irq_save_flags());
+	return arch_irqs_disabled_flags(arch_local_save_flags());
 }
 
 #endif

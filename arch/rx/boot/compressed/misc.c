@@ -8,9 +8,6 @@
  *
  */
 
-#include <asm/uaccess.h>
-#include <asm/page.h>
-
 /*
  * gzip declarations
  */

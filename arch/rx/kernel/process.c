@@ -19,6 +19,7 @@
 #include <linux/fs.h>
 #include <linux/ftrace.h>
 #include <linux/preempt.h>
+#include <linux/sched/debug.h>
 #include <asm/uaccess.h>
 #include <asm/mmu_context.h>
 #include <asm/pgalloc.h>
@@ -72,7 +73,7 @@ void show_regs(struct pt_regs * regs)
 {
 	printk("\n");
 	printk("Pid : %d, Comm: \t\t%s\n", task_pid_nr(current), current->comm);
-	print_symbol("PC is at %s\n", instruction_pointer(regs));
+	printk("PC is at %pS\n", (void *)instruction_pointer(regs));
 
 	printk("PC  : %08lx SP  : %08lx PSW  : %08lx\n",
 	       regs->pc, regs->r[0], regs->psw);
@@ -92,6 +93,10 @@ void show_regs(struct pt_regs * regs)
 
 asmlinkage void ret_from_fork(void);
 asmlinkage void ret_from_kernel_thread(void);
+
+void flush_thread(void)
+{
+}
 
 int copy_thread(unsigned long clone_flags,
                 unsigned long usp, unsigned long topstk,

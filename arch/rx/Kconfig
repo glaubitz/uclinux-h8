@@ -24,6 +24,7 @@ config RX
 	select CLKSRC_OF
 	select GENERIC_CLOCKEVENTS
 	select HAVE_EFFICIENT_UNALIGNED_ACCESS
+	select DMA_DIRECT_OPS
 
 config MMU
 	def_bool n
@@ -97,8 +98,6 @@ config NR_CPUS
 
 config GENERIC_IRQ_SHOW
        def_bool y
-
-source "init/Kconfig"
 
 source "kernel/Kconfig.freezer"
 
@@ -191,34 +190,5 @@ config BOOT_LINK_OFFSET
        hex "Link offset of zImage"
 endmenu
 
-config PREEMPT
-	bool "Preemptible Kernel"
-	default n
-
-source "mm/Kconfig"
-
 endmenu
 
-menu "Executable file formats"
-
-source "fs/Kconfig.binfmt"
-
-endmenu
-
-source "net/Kconfig"
-
-source "drivers/Kconfig"
-
-source "fs/Kconfig"
-
-menu "Kernel Hacking"
-
-source "lib/Kconfig.debug"
-
-endmenu
-
-source "security/Kconfig"
-
-source "crypto/Kconfig"
-
-source "lib/Kconfig"

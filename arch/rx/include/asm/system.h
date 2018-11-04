@@ -23,17 +23,6 @@ __asm__ volatile("switch_to:");				\
 } while(0)
 
 
-#define nop()  asm volatile ("nop"::)
-#define mb()   asm volatile (""   : : :"memory")
-#define rmb()  asm volatile (""   : : :"memory")
-#define wmb()  asm volatile (""   : : :"memory")
-#define set_mb(var, value) do { var = value; } while (0)
-
-#define smp_mb()	barrier()
-#define smp_rmb()	barrier()
-#define smp_wmb()	barrier()
-#define smp_read_barrier_depends()	do { } while(0)
-
 #define arch_align_stack(x) (x)
 
 #endif /* __ASM_RX_SYSTEM_H__ */
