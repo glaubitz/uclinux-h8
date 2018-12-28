@@ -2959,12 +2959,13 @@ static int sci_init_single(struct platform_device *dev,
 	port->flags		= UPF_FIXED_PORT | UPF_BOOT_AUTOCONF | p->flags;
 	port->fifosize		= sci_port->params->fifosize;
 
-	if (port->type == PORT_SCI) {
-		if (sci_port->reg_size >= 0x20)
-			port->regshift = 2;
-		else
-			port->regshift = 1;
-	}
+	if (port->type == PORT_SCI)
+		/*
+		  < 0x10: 8bit alignment
+		  >= 0x10 && < 0x20: 16bit alignment
+		  >= 0x20: 32bit alignment
+		*/
+		port->regshift = (sci_port->reg_size >> 4);
 
 	/*
 	 * The UART port needs an IRQ value, so we peg this to the RX IRQ
