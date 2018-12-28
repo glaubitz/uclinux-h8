@@ -16,7 +16,7 @@
 	.section	.head.text,"ax"
 startup:
 	mov.l	#CONFIG_INITIAL_STACK,r0
-#if !defined(CONFIG_RX_GDB_SIM)
+#if !defined(CONFIG_RX_GDB_SIM) || 1
 #if defined(CONFIG_ROMKERNEL)
 	mov.l	#setup_bsc,r1
 	jsr	r1
