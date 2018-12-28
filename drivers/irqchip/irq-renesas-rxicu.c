@@ -75,7 +75,6 @@ static int __init rx_icu_of_init(struct device_node *icu,
 	domain = irq_domain_add_linear(icu, NR_IRQS, &irq_ops, NULL);
 	BUG_ON(!domain);
 	irq_set_default_host(domain);
-	irq_domain_associate_many(domain, 0, 0, NR_IRQS);
 	for (i = 0; i < 0x90; i++)
 		__raw_writeb(1, (void __iomem *)(IPR + i));
 	return 0;
