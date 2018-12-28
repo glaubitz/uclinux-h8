@@ -19,12 +19,14 @@ config RX
 	select OF_IRQ
 	select OF_FLATTREE
 	select HAVE_MEMBLOCK
+	select NO_BOOTMEM
 	select OF_EARLY_FLATTREE
 	select COMMON_CLK
 	select CLKSRC_OF
 	select GENERIC_CLOCKEVENTS
 	select HAVE_EFFICIENT_UNALIGNED_ACCESS
 	select DMA_DIRECT_OPS
+	select TIMER_OF
 
 config MMU
 	def_bool n
@@ -109,7 +111,7 @@ choice
 
 config RX_GDB_SIM
 	bool "GDB Simulator"
-	select CPU_RX610
+	select CPU_RX62N
 	help
 	  GDB Simulator
 
