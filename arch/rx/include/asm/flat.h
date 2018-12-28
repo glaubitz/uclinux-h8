@@ -7,9 +7,9 @@
 #define	flat_set_persistent(relval, p)		0
 
 #define	flat_get_relocate_addr(rel)		(rel)
-#define flat_get_addr_from_rp(rp, relval, flags, persistent) \
-        get_unaligned(rp)
+#define flat_get_addr_from_rp(rp, relval, flags, addr, persistent)	\
+	get_user(*addr, rp)
 #define flat_put_addr_at_rp(rp, addr, rel) \
-	put_unaligned (addr, rp)
+	put_user(addr, rp)
 
 #endif /* __ASM_RX_FLAT_H__ */
