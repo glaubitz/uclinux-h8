@@ -54,9 +54,7 @@ interrupt_entry:
 	mov.l	r13,OFF_VEC[r0]
 	cmp	#MIN_IRQ,r13
 	ble	1f
-	mvfc	psw,r1
-	and	#~0x07000000,r1		; enable nested interrupt
-	mvtc	r1,psw
+	mvtipl	#0
 	mov.l	r13,r1
 	mov.l	r0,r2
 	bsr	do_IRQ
