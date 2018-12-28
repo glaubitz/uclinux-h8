@@ -155,7 +155,7 @@ static struct cmt_priv cmt_priv = {
 	},
 };
 
-static void __init cmt_init(struct device_node *node)
+static int __init cmt_init(struct device_node *node)
 {
 	void __iomem *base;
 	int irq;
@@ -166,7 +166,7 @@ static void __init cmt_init(struct device_node *node)
 	clk = of_clk_get(node, 0);
 	if (IS_ERR(clk)) {
 		pr_err("failed to get clock for clockevent\n");
-		return;
+		return PTR_ERR(clk);
 	}
 
 	base = of_iomap(node, 0);
@@ -199,11 +199,12 @@ static void __init cmt_init(struct device_node *node)
 
 	clockevents_config_and_register(&cmt_priv.ced, rate, 1, 0x0000ffff);
 
-	return;
+	return 0;
 unmap_reg:
 	iounmap(base);
 free_clk:
 	clk_put(clk);
+	return ret;
 }
 
-CLOCKSOURCE_OF_DECLARE(rx_cmt, "renesas,rx-cmt", cmt_init);
+TIMER_OF_DECLARE(rx_cmt, "renesas,rx-cmt", cmt_init);
