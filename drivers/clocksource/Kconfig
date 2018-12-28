@@ -590,7 +590,10 @@ config RX_TPU
 	bool
 
 config RX_CMT
-	bool
+        bool "Clockevent timer for the RX platform" if COMPILE_TEST
+        depends on HAS_IOMEM
+	help
+	  This enables the 16 bits timer for the RX platformk.
 
 config CLKSRC_IMX_GPT
 	bool "Clocksource using i.MX GPT" if COMPILE_TEST
