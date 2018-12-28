@@ -4,11 +4,5 @@ endif
 
 obj-y += $(BUILTIN_DTB)
 
-dtb-$(CONFIG_RX_SIM) := rx_sim.dtb
-dtb-$(CONFIG_TKDN_RX62N) := tkdn-rx62n.dtb
-
-dtstree		:= $(srctree)/$(src)
-dtb-$(CONFIG_OF_ALL_DTBS) := $(patsubst $(dtstree)/%.dts,%.dtb, $(wildcard $(dtstree)/*.dts))
-
-always	    := $(dtb-y)
-clean-files := *.dtb.S *.dtb
+dtb-$(CONFIG_RX_GDB_SIM) := rx_sim.dtb
+dtb-$(CONFIG_TKDN_RX62N) := tkdn_rx62n.dtb
