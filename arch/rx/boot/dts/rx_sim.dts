@@ -7,7 +7,7 @@
 
 	chosen {
 		bootargs = "earlycon=rxsim";
-		stdout-path = <&sci0>;
+		stdout-path = &sci0;
 	};
 	aliases {
 		serial0 = &sci0;
