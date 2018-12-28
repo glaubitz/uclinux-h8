@@ -87,11 +87,6 @@ void __init paging_init(void)
 	empty_zero_page = (unsigned long)alloc_bootmem_pages(PAGE_SIZE);
 	memset((void *)empty_zero_page, 0, PAGE_SIZE);
 
-	/*
-	 * Set up SFC/DFC registers (user data space).
-	 */
-	set_fs (USER_DS);
-
 #ifdef DEBUG
 	printk ("before free_area_init\n");
 
