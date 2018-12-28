@@ -115,8 +115,8 @@ static __inline__ unsigned long __ffs(unsigned long word)
 			 "add #1,%0\n\t"
 			 "shlr #1,%1\n\t"
 			 "bnc 1b"
-			 : "=r" (result)
-			 : "r"(word),"0"(result));
+			 : "=r" (result), "=r"(word)
+			 : "0"(result),"1"(word));
 	return result;
 }
 
