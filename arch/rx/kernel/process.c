@@ -28,21 +28,10 @@
 void (*pm_power_off)(void) = NULL;
 EXPORT_SYMBOL(pm_power_off);
 
-/*
- * The idle thread. There's no useful work to be
- * done, so just try to conserve power and have a
- * low exit latency (ie sit in a loop waiting for
- * somebody to say that they'd like to reschedule)
- */
-void cpu_idle(void)
+void arch_cpu_idle(void)
 {
-	while (1) {
-		while (!need_resched())
-			__asm__ volatile("wait");
-		preempt_enable_no_resched();
-		schedule();
-		preempt_disable();
-	}
+	local_irq_enable();
+	__asm__ volatile("wait");
 }
 
 void __noreturn machine_restart(char * __unused)
