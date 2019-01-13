@@ -55,12 +55,12 @@ struct thread_struct {
  * pass the data segment into user programs if it exists,
  * it can't hurt anything as far as I can tell
  */
-#define start_thread(_regs, _pc, _usp)			        \
-do {							        \
-	set_fs(USER_DS);           /* reads from user space */  \
-	(_regs)->pc = (_pc);				        \
-	(_regs)->psw = (1<<20) | (1<<17); /* user mode */	\
-	(_regs)->usp = (_usp);					\
+#define start_thread(_regs, _pc, _usp)					\
+do {									\
+	set_fs(USER_DS);           /* reads from user space */		\
+	(_regs)->pc = (_pc);						\
+	(_regs)->psw = (1<<20) | (1<<17) | (1<<16); /* PM / U / I = 1 */ \
+	(_regs)->usp = (_usp);						\
 } while(0)
 
 /* Forward declaration, a strange C thing */
