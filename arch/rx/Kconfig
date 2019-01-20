@@ -27,6 +27,8 @@ config RX
 	select HAVE_EFFICIENT_UNALIGNED_ACCESS
 	select DMA_DIRECT_OPS
 	select TIMER_OF
+	select GENERIC_CPU_DEVICES
+	select GENERIC_IRQ_SHOW
 
 config MMU
 	def_bool n
