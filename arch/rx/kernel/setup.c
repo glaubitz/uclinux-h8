@@ -170,7 +170,7 @@ const struct seq_operations cpuinfo_op = {
 
 static int __init device_probe(void)
 {
-	of_platform_populate(NULL, of_default_bus_match_table, NULL, NULL);
+	of_platform_default_populate(NULL, NULL, NULL);
 
 	return 0;
 }

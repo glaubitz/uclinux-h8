@@ -81,7 +81,7 @@
 	sci0: serial@00088240 {
 		compatible = "renesas,sci";
 		reg = <0x00088240 8>;
-		interrupts = <214 0>, <215 0>, <216 0>, <217 0>;
+		interrupts = <214 0>, <215 0>, <216 0>, <0 0>, <0 0>, <217 0>;
 		clocks = <&pclk>;
 		clock-names = "sci_ick";
 	};
@@ -89,7 +89,7 @@
 	sci1: serial@00088248 {
 		compatible = "renesas,sci";
 		reg = <0x00088248 8>;
-		interrupts = <218 0>, <219 0>, <220 0>, <221 0>;
+		interrupts = <218 0>, <219 0>, <220 0>, <0 0>, <0 0>, <221 0>;
 		clocks = <&pclk>;
 		clock-names = "sci_ick";
 	};

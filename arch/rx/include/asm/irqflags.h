@@ -38,7 +38,7 @@ static inline void arch_local_irq_restore(unsigned long iflag)
 		
 static inline int arch_irqs_disabled_flags(unsigned long psw)
 {
-	return (psw & 0x10000) == 0;
+	return (psw & (1 << 16)) == 0;
 }
 
 static inline int arch_irqs_disabled(void)
