@@ -1,15 +1,12 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright (C) 2015 Texas Instruments
  * Author: Jyri Sarha <jsarha@ti.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- *
  */
 
 #include <linux/component.h>
 #include <linux/of_graph.h>
+#include <drm/drm_atomic_helper.h>
 #include <drm/drm_of.h>
 
 #include "tilcdc_drv.h"
@@ -103,12 +100,11 @@ struct drm_connector *tilcdc_encoder_find_connector(struct drm_device *ddev,
 						    struct drm_encoder *encoder)
 {
 	struct drm_connector *connector;
-	int i;
 
-	list_for_each_entry(connector, &ddev->mode_config.connector_list, head)
-		for (i = 0; i < DRM_CONNECTOR_MAX_ENCODER; i++)
-			if (connector->encoder_ids[i] == encoder->base.id)
-				return connector;
+	list_for_each_entry(connector, &ddev->mode_config.connector_list, head) {
+		if (drm_connector_has_possible_encoder(connector, encoder))
+			return connector;
+	}
 
 	dev_err(ddev->dev, "No connector found for %s encoder (id %d)\n",
 		encoder->name, encoder->base.id);

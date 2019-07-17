@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
  *  linux/fs/ufs/super.c
  *
@@ -698,7 +699,7 @@ static int ufs_sync_fs(struct super_block *sb, int wait)
 	usb1 = ubh_get_usb_first(uspi);
 	usb3 = ubh_get_usb_third(uspi);
 
-	usb1->fs_time = cpu_to_fs32(sb, get_seconds());
+	usb1->fs_time = ufs_get_seconds(sb);
 	if ((flags & UFS_ST_MASK) == UFS_ST_SUN  ||
 	    (flags & UFS_ST_MASK) == UFS_ST_SUNOS ||
 	    (flags & UFS_ST_MASK) == UFS_ST_SUNx86)
@@ -1342,7 +1343,7 @@ static int ufs_remount (struct super_block *sb, int *mount_flags, char *data)
 	 */
 	if (*mount_flags & SB_RDONLY) {
 		ufs_put_super_internal(sb);
-		usb1->fs_time = cpu_to_fs32(sb, get_seconds());
+		usb1->fs_time = ufs_get_seconds(sb);
 		if ((flags & UFS_ST_MASK) == UFS_ST_SUN
 		  || (flags & UFS_ST_MASK) == UFS_ST_SUNOS
 		  || (flags & UFS_ST_MASK) == UFS_ST_SUNx86) 
@@ -1449,15 +1450,9 @@ static struct inode *ufs_alloc_inode(struct super_block *sb)
 	return &ei->vfs_inode;
 }
 
-static void ufs_i_callback(struct rcu_head *head)
+static void ufs_free_in_core_inode(struct inode *inode)
 {
-	struct inode *inode = container_of(head, struct inode, i_rcu);
 	kmem_cache_free(ufs_inode_cachep, UFS_I(inode));
-}
-
-static void ufs_destroy_inode(struct inode *inode)
-{
-	call_rcu(&inode->i_rcu, ufs_i_callback);
 }
 
 static void init_once(void *foo)
@@ -1494,7 +1489,7 @@ static void destroy_inodecache(void)
 
 static const struct super_operations ufs_super_ops = {
 	.alloc_inode	= ufs_alloc_inode,
-	.destroy_inode	= ufs_destroy_inode,
+	.free_inode	= ufs_free_in_core_inode,
 	.write_inode	= ufs_write_inode,
 	.evict_inode	= ufs_evict_inode,
 	.put_super	= ufs_put_super,

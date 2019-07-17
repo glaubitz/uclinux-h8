@@ -146,9 +146,9 @@ int jffs2_do_setattr (struct inode *inode, struct iattr *iattr)
 		return PTR_ERR(new_metadata);
 	}
 	/* It worked. Update the inode */
-	inode->i_atime = timespec_to_timespec64(ITIME(je32_to_cpu(ri->atime)));
-	inode->i_ctime = timespec_to_timespec64(ITIME(je32_to_cpu(ri->ctime)));
-	inode->i_mtime = timespec_to_timespec64(ITIME(je32_to_cpu(ri->mtime)));
+	inode->i_atime = ITIME(je32_to_cpu(ri->atime));
+	inode->i_ctime = ITIME(je32_to_cpu(ri->ctime));
+	inode->i_mtime = ITIME(je32_to_cpu(ri->mtime));
 	inode->i_mode = jemode_to_cpu(ri->mode);
 	i_uid_write(inode, je16_to_cpu(ri->uid));
 	i_gid_write(inode, je16_to_cpu(ri->gid));
@@ -280,9 +280,9 @@ struct inode *jffs2_iget(struct super_block *sb, unsigned long ino)
 	i_uid_write(inode, je16_to_cpu(latest_node.uid));
 	i_gid_write(inode, je16_to_cpu(latest_node.gid));
 	inode->i_size = je32_to_cpu(latest_node.isize);
-	inode->i_atime = timespec_to_timespec64(ITIME(je32_to_cpu(latest_node.atime)));
-	inode->i_mtime = timespec_to_timespec64(ITIME(je32_to_cpu(latest_node.mtime)));
-	inode->i_ctime = timespec_to_timespec64(ITIME(je32_to_cpu(latest_node.ctime)));
+	inode->i_atime = ITIME(je32_to_cpu(latest_node.atime));
+	inode->i_mtime = ITIME(je32_to_cpu(latest_node.mtime));
+	inode->i_ctime = ITIME(je32_to_cpu(latest_node.ctime));
 
 	set_nlink(inode, f->inocache->pino_nlink);
 
@@ -340,6 +340,7 @@ struct inode *jffs2_iget(struct super_block *sb, unsigned long ino)
 			rdev = old_decode_dev(je16_to_cpu(jdev.old_id));
 		else
 			rdev = new_decode_dev(je32_to_cpu(jdev.new_id));
+		/* fall through */
 
 	case S_IFSOCK:
 	case S_IFIFO:
@@ -686,7 +687,7 @@ unsigned char *jffs2_gc_fetch_page(struct jffs2_sb_info *c,
 	struct page *pg;
 
 	pg = read_cache_page(inode->i_mapping, offset >> PAGE_SHIFT,
-			     (void *)jffs2_do_readpage_unlock, inode);
+			     jffs2_do_readpage_unlock, inode);
 	if (IS_ERR(pg))
 		return (void *)pg;
 

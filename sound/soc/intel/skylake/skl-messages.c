@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
  *  skl-message.c - HDA DSP interface for FW registration, Pipe and Module
  *  configurations
@@ -6,15 +7,6 @@
  *  Author:Rafal Redzimski <rafal.f.redzimski@intel.com>
  *	   Jeeja KP <jeeja.kp@intel.com>
  *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as version 2, as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
  */
 
 #include <linux/slab.h>
@@ -33,8 +25,7 @@
 static int skl_alloc_dma_buf(struct device *dev,
 		struct snd_dma_buffer *dmab, size_t size)
 {
-	struct hdac_ext_bus *ebus = dev_get_drvdata(dev);
-	struct hdac_bus *bus = ebus_to_hbus(ebus);
+	struct hdac_bus *bus = dev_get_drvdata(dev);
 
 	if (!bus)
 		return -ENODEV;
@@ -44,8 +35,7 @@ static int skl_alloc_dma_buf(struct device *dev,
 
 static int skl_free_dma_buf(struct device *dev, struct snd_dma_buffer *dmab)
 {
-	struct hdac_ext_bus *ebus = dev_get_drvdata(dev);
-	struct hdac_bus *bus = ebus_to_hbus(ebus);
+	struct hdac_bus *bus = dev_get_drvdata(dev);
 
 	if (!bus)
 		return -ENODEV;
@@ -89,8 +79,7 @@ void skl_dsp_enable_notification(struct skl_sst *ctx, bool enable)
 static int skl_dsp_setup_spib(struct device *dev, unsigned int size,
 				int stream_tag, int enable)
 {
-	struct hdac_ext_bus *ebus = dev_get_drvdata(dev);
-	struct hdac_bus *bus = ebus_to_hbus(ebus);
+	struct hdac_bus *bus = dev_get_drvdata(dev);
 	struct hdac_stream *stream = snd_hdac_get_stream(bus,
 			SNDRV_PCM_STREAM_PLAYBACK, stream_tag);
 	struct hdac_ext_stream *estream;
@@ -100,10 +89,10 @@ static int skl_dsp_setup_spib(struct device *dev, unsigned int size,
 
 	estream = stream_to_hdac_ext_stream(stream);
 	/* enable/disable SPIB for this hdac stream */
-	snd_hdac_ext_stream_spbcap_enable(ebus, enable, stream->index);
+	snd_hdac_ext_stream_spbcap_enable(bus, enable, stream->index);
 
 	/* set the spib value */
-	snd_hdac_ext_stream_set_spib(ebus, estream, size);
+	snd_hdac_ext_stream_set_spib(bus, estream, size);
 
 	return 0;
 }
@@ -111,8 +100,7 @@ static int skl_dsp_setup_spib(struct device *dev, unsigned int size,
 static int skl_dsp_prepare(struct device *dev, unsigned int format,
 			unsigned int size, struct snd_dma_buffer *dmab)
 {
-	struct hdac_ext_bus *ebus = dev_get_drvdata(dev);
-	struct hdac_bus *bus = ebus_to_hbus(ebus);
+	struct hdac_bus *bus = dev_get_drvdata(dev);
 	struct hdac_ext_stream *estream;
 	struct hdac_stream *stream;
 	struct snd_pcm_substream substream;
@@ -124,7 +112,7 @@ static int skl_dsp_prepare(struct device *dev, unsigned int format,
 	memset(&substream, 0, sizeof(substream));
 	substream.stream = SNDRV_PCM_STREAM_PLAYBACK;
 
-	estream = snd_hdac_ext_stream_assign(ebus, &substream,
+	estream = snd_hdac_ext_stream_assign(bus, &substream,
 					HDAC_EXT_STREAM_TYPE_HOST);
 	if (!estream)
 		return -ENODEV;
@@ -143,9 +131,8 @@ static int skl_dsp_prepare(struct device *dev, unsigned int format,
 
 static int skl_dsp_trigger(struct device *dev, bool start, int stream_tag)
 {
-	struct hdac_ext_bus *ebus = dev_get_drvdata(dev);
+	struct hdac_bus *bus = dev_get_drvdata(dev);
 	struct hdac_stream *stream;
-	struct hdac_bus *bus = ebus_to_hbus(ebus);
 
 	if (!bus)
 		return -ENODEV;
@@ -163,10 +150,9 @@ static int skl_dsp_trigger(struct device *dev, bool start, int stream_tag)
 static int skl_dsp_cleanup(struct device *dev,
 		struct snd_dma_buffer *dmab, int stream_tag)
 {
-	struct hdac_ext_bus *ebus = dev_get_drvdata(dev);
+	struct hdac_bus *bus = dev_get_drvdata(dev);
 	struct hdac_stream *stream;
 	struct hdac_ext_stream *estream;
-	struct hdac_bus *bus = ebus_to_hbus(ebus);
 
 	if (!bus)
 		return -ENODEV;
@@ -253,6 +239,30 @@ static const struct skl_dsp_ops dsp_ops[] = {
 		.init_fw = cnl_sst_init_fw,
 		.cleanup = cnl_sst_dsp_cleanup
 	},
+	{
+		.id = 0xa348,
+		.num_cores = 4,
+		.loader_ops = bxt_get_loader_ops,
+		.init = cnl_sst_dsp_init,
+		.init_fw = cnl_sst_init_fw,
+		.cleanup = cnl_sst_dsp_cleanup
+	},
+	{
+		.id = 0x02c8,
+		.num_cores = 4,
+		.loader_ops = bxt_get_loader_ops,
+		.init = cnl_sst_dsp_init,
+		.init_fw = cnl_sst_init_fw,
+		.cleanup = cnl_sst_dsp_cleanup
+	},
+	{
+		.id = 0x06c8,
+		.num_cores = 4,
+		.loader_ops = bxt_get_loader_ops,
+		.init = cnl_sst_dsp_init,
+		.init_fw = cnl_sst_init_fw,
+		.cleanup = cnl_sst_dsp_cleanup
+	},
 };
 
 const struct skl_dsp_ops *skl_get_dsp_ops(int pci_id)
@@ -270,8 +280,7 @@ const struct skl_dsp_ops *skl_get_dsp_ops(int pci_id)
 int skl_init_dsp(struct skl *skl)
 {
 	void __iomem *mmio_base;
-	struct hdac_ext_bus *ebus = &skl->ebus;
-	struct hdac_bus *bus = ebus_to_hbus(ebus);
+	struct hdac_bus *bus = skl_to_bus(skl);
 	struct skl_dsp_loader_ops loader_ops;
 	int irq = bus->irq;
 	const struct skl_dsp_ops *ops;
@@ -279,8 +288,8 @@ int skl_init_dsp(struct skl *skl)
 	int ret;
 
 	/* enable ppcap interrupt */
-	snd_hdac_ext_bus_ppcap_enable(&skl->ebus, true);
-	snd_hdac_ext_bus_ppcap_int_enable(&skl->ebus, true);
+	snd_hdac_ext_bus_ppcap_enable(bus, true);
+	snd_hdac_ext_bus_ppcap_int_enable(bus, true);
 
 	/* read the BAR of the ADSP MMIO */
 	mmio_base = pci_ioremap_bar(skl->pci, 4);
@@ -335,12 +344,11 @@ unmap_mmio:
 
 int skl_free_dsp(struct skl *skl)
 {
-	struct hdac_ext_bus *ebus = &skl->ebus;
-	struct hdac_bus *bus = ebus_to_hbus(ebus);
+	struct hdac_bus *bus = skl_to_bus(skl);
 	struct skl_sst *ctx = skl->skl_sst;
 
 	/* disable  ppcap interrupt */
-	snd_hdac_ext_bus_ppcap_int_enable(&skl->ebus, false);
+	snd_hdac_ext_bus_ppcap_int_enable(bus, false);
 
 	ctx->dsp_ops->cleanup(bus->dev, ctx);
 
@@ -383,10 +391,11 @@ int skl_suspend_late_dsp(struct skl *skl)
 int skl_suspend_dsp(struct skl *skl)
 {
 	struct skl_sst *ctx = skl->skl_sst;
+	struct hdac_bus *bus = skl_to_bus(skl);
 	int ret;
 
 	/* if ppcap is not supported return 0 */
-	if (!skl->ebus.bus.ppcap)
+	if (!bus->ppcap)
 		return 0;
 
 	ret = skl_dsp_sleep(ctx->dsp);
@@ -394,8 +403,8 @@ int skl_suspend_dsp(struct skl *skl)
 		return ret;
 
 	/* disable ppcap interrupt */
-	snd_hdac_ext_bus_ppcap_int_enable(&skl->ebus, false);
-	snd_hdac_ext_bus_ppcap_enable(&skl->ebus, false);
+	snd_hdac_ext_bus_ppcap_int_enable(bus, false);
+	snd_hdac_ext_bus_ppcap_enable(bus, false);
 
 	return 0;
 }
@@ -403,18 +412,19 @@ int skl_suspend_dsp(struct skl *skl)
 int skl_resume_dsp(struct skl *skl)
 {
 	struct skl_sst *ctx = skl->skl_sst;
+	struct hdac_bus *bus = skl_to_bus(skl);
 	int ret;
 
 	/* if ppcap is not supported return 0 */
-	if (!skl->ebus.bus.ppcap)
+	if (!bus->ppcap)
 		return 0;
 
 	/* enable ppcap interrupt */
-	snd_hdac_ext_bus_ppcap_enable(&skl->ebus, true);
-	snd_hdac_ext_bus_ppcap_int_enable(&skl->ebus, true);
+	snd_hdac_ext_bus_ppcap_enable(bus, true);
+	snd_hdac_ext_bus_ppcap_int_enable(bus, true);
 
 	/* check if DSP 1st boot is done */
-	if (skl->skl_sst->is_first_boot == true)
+	if (skl->skl_sst->is_first_boot)
 		return 0;
 
 	/*
@@ -481,6 +491,7 @@ static void skl_set_base_module_format(struct skl_sst *ctx,
 	base_cfg->audio_fmt.bit_depth = format->bit_depth;
 	base_cfg->audio_fmt.valid_bit_depth = format->valid_bit_depth;
 	base_cfg->audio_fmt.ch_cfg = format->ch_cfg;
+	base_cfg->audio_fmt.sample_type = format->sample_type;
 
 	dev_dbg(ctx->dev, "bit_depth=%x valid_bd=%x ch_config=%x\n",
 			format->bit_depth, format->valid_bit_depth,
@@ -1246,16 +1257,20 @@ int skl_create_pipeline(struct skl_sst *ctx, struct skl_pipe *pipe)
 }
 
 /*
- * A pipeline needs to be deleted on cleanup. If a pipeline is running, then
- * pause the pipeline first and then delete it
- * The pipe delete is done by sending delete pipeline IPC. DSP will stop the
- * DMA engines and releases resources
+ * A pipeline needs to be deleted on cleanup. If a pipeline is running,
+ * then pause it first. Before actual deletion, pipeline should enter
+ * reset state. Finish the procedure by sending delete pipeline IPC.
+ * DSP will stop the DMA engines and release resources
  */
 int skl_delete_pipe(struct skl_sst *ctx, struct skl_pipe *pipe)
 {
 	int ret;
 
 	dev_dbg(ctx->dev, "%s: pipe = %d\n", __func__, pipe->ppl_id);
+
+	/* If pipe was not created in FW, do not try to delete it */
+	if (pipe->state < SKL_PIPE_CREATED)
+		return 0;
 
 	/* If pipe is started, do stop the pipe in FW. */
 	if (pipe->state >= SKL_PIPE_STARTED) {
@@ -1268,9 +1283,14 @@ int skl_delete_pipe(struct skl_sst *ctx, struct skl_pipe *pipe)
 		pipe->state = SKL_PIPE_PAUSED;
 	}
 
-	/* If pipe was not created in FW, do not try to delete it */
-	if (pipe->state < SKL_PIPE_CREATED)
-		return 0;
+	/* reset pipe state before deletion */
+	ret = skl_set_pipe_state(ctx, pipe, PPL_RESET);
+	if (ret < 0) {
+		dev_err(ctx->dev, "Failed to reset pipe ret=%d\n", ret);
+		return ret;
+	}
+
+	pipe->state = SKL_PIPE_RESET;
 
 	ret = skl_ipc_delete_pipeline(&ctx->ipc, pipe->ppl_id);
 	if (ret < 0) {

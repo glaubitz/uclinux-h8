@@ -230,8 +230,6 @@
  * @addr_type:	Current status of the comparator register.
  * @ctxid_idx:	Context ID index selector.
  * @ctxid_pid:	Value of the context ID comparator.
- * @ctxid_vpid:	Virtual PID seen by users if PID namespace is enabled, otherwise
- *		the same value of ctxid_pid.
  * @ctxid_mask0:Context ID comparator mask for comparator 0-3.
  * @ctxid_mask1:Context ID comparator mask for comparator 4-7.
  * @vmid_idx:	VM ID index selector.
@@ -274,7 +272,6 @@ struct etmv4_config {
 	u8				addr_type[ETM_MAX_SINGLE_ADDR_CMP];
 	u8				ctxid_idx;
 	u64				ctxid_pid[ETMv4_MAX_CTXID_CMP];
-	u64				ctxid_vpid[ETMv4_MAX_CTXID_CMP];
 	u32				ctxid_mask0;
 	u32				ctxid_mask1;
 	u8				vmid_idx;
@@ -287,7 +284,6 @@ struct etmv4_config {
 /**
  * struct etm4_drvdata - specifics associated to an ETM component
  * @base:       Memory mapped base address for this component.
- * @dev:        The device entity associated to this component.
  * @csdev:      Component vitals needed by the framework.
  * @spinlock:   Only one at a time pls.
  * @mode:	This tracer's mode, i.e sysFS, Perf or disabled.
@@ -343,7 +339,6 @@ struct etmv4_config {
  */
 struct etmv4_drvdata {
 	void __iomem			*base;
-	struct device			*dev;
 	struct coresight_device		*csdev;
 	spinlock_t			spinlock;
 	local_t				mode;

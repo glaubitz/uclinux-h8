@@ -1,11 +1,8 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /****************************************************************************
  * Driver for Solarflare network controllers and boards
  * Copyright 2005-2006 Fen Systems Ltd.
  * Copyright 2005-2013 Solarflare Communications Inc.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published
- * by the Free Software Foundation, incorporated herein by reference.
  */
 
 #include <linux/module.h>
@@ -264,10 +261,16 @@ static int efx_check_disabled(struct efx_nic *efx)
 static int efx_process_channel(struct efx_channel *channel, int budget)
 {
 	struct efx_tx_queue *tx_queue;
+	struct list_head rx_list;
 	int spent;
 
 	if (unlikely(!channel->enabled))
 		return 0;
+
+	/* Prepare the batch receive list */
+	EFX_WARN_ON_PARANOID(channel->rx_list != NULL);
+	INIT_LIST_HEAD(&rx_list);
+	channel->rx_list = &rx_list;
 
 	efx_for_each_channel_tx_queue(tx_queue, channel) {
 		tx_queue->pkts_compl = 0;
@@ -290,6 +293,10 @@ static int efx_process_channel(struct efx_channel *channel, int budget)
 				tx_queue->pkts_compl, tx_queue->bytes_compl);
 		}
 	}
+
+	/* Receive any packets we queued up */
+	netif_receive_skb_list(channel->rx_list);
+	channel->rx_list = NULL;
 
 	return spent;
 }
@@ -554,6 +561,8 @@ static int efx_probe_channel(struct efx_channel *channel)
 		if (rc)
 			goto fail;
 	}
+
+	channel->rx_list = NULL;
 
 	return 0;
 
@@ -903,7 +912,7 @@ rollback:
 
 void efx_schedule_slow_fill(struct efx_rx_queue *rx_queue)
 {
-	mod_timer(&rx_queue->slow_fill, jiffies + msecs_to_jiffies(100));
+	mod_timer(&rx_queue->slow_fill, jiffies + msecs_to_jiffies(10));
 }
 
 static bool efx_default_channel_want_txqs(struct efx_channel *channel)
@@ -2196,29 +2205,6 @@ static void efx_fini_napi(struct efx_nic *efx)
 
 /**************************************************************************
  *
- * Kernel netpoll interface
- *
- *************************************************************************/
-
-#ifdef CONFIG_NET_POLL_CONTROLLER
-
-/* Although in the common case interrupts will be disabled, this is not
- * guaranteed. However, all our work happens inside the NAPI callback,
- * so no locking is required.
- */
-static void efx_netpoll(struct net_device *net_dev)
-{
-	struct efx_nic *efx = netdev_priv(net_dev);
-	struct efx_channel *channel;
-
-	efx_for_each_channel(channel, efx)
-		efx_schedule_channel(channel);
-}
-
-#endif
-
-/**************************************************************************
- *
  * Kernel net device interface
  *
  *************************************************************************/
@@ -2497,9 +2483,6 @@ static const struct net_device_ops efx_netdev_ops = {
 #endif
 	.ndo_get_phys_port_id   = efx_get_phys_port_id,
 	.ndo_get_phys_port_name	= efx_get_phys_port_name,
-#ifdef CONFIG_NET_POLL_CONTROLLER
-	.ndo_poll_controller = efx_netpoll,
-#endif
 	.ndo_setup_tc		= efx_setup_tc,
 #ifdef CONFIG_RFS_ACCEL
 	.ndo_rx_flow_steer	= efx_filter_rfs,
@@ -3181,7 +3164,7 @@ struct hlist_head *efx_rps_hash_bucket(struct efx_nic *efx,
 {
 	u32 hash = efx_filter_spec_hash(spec);
 
-	WARN_ON(!spin_is_locked(&efx->rps_hash_lock));
+	lockdep_assert_held(&efx->rps_hash_lock);
 	if (!efx->rps_hash_table)
 		return NULL;
 	return &efx->rps_hash_table[hash % EFX_ARFS_HASH_TABLE_SIZE];
@@ -3631,11 +3614,7 @@ static int efx_pci_probe(struct pci_dev *pci_dev,
 		netif_warn(efx, probe, efx->net_dev,
 			   "failed to create MTDs (%d)\n", rc);
 
-	rc = pci_enable_pcie_error_reporting(pci_dev);
-	if (rc && rc != -EINVAL)
-		netif_notice(efx, probe, efx->net_dev,
-			     "PCIE error reporting unavailable (%d).\n",
-			     rc);
+	(void)pci_enable_pcie_error_reporting(pci_dev);
 
 	if (efx->type->udp_tnl_push_ports)
 		efx->type->udp_tnl_push_ports(efx);
@@ -3835,19 +3814,11 @@ static pci_ers_result_t efx_io_slot_reset(struct pci_dev *pdev)
 {
 	struct efx_nic *efx = pci_get_drvdata(pdev);
 	pci_ers_result_t status = PCI_ERS_RESULT_RECOVERED;
-	int rc;
 
 	if (pci_enable_device(pdev)) {
 		netif_err(efx, hw, efx->net_dev,
 			  "Cannot re-enable PCI device after reset.\n");
 		status =  PCI_ERS_RESULT_DISCONNECT;
-	}
-
-	rc = pci_cleanup_aer_uncorrect_error_status(pdev);
-	if (rc) {
-		netif_err(efx, hw, efx->net_dev,
-		"pci_cleanup_aer_uncorrect_error_status failed (%d)\n", rc);
-		/* Non-fatal error. Continue. */
 	}
 
 	return status;

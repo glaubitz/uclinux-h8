@@ -1,20 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 /*
  *   Clock domain and sample rate management functions
- *
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2 of the License, or
- *   (at your option) any later version.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with this program; if not, write to the Free Software
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
- *
  */
 
 #include <linux/bitops.h>
@@ -513,14 +499,28 @@ static int set_sample_rate_v2v3(struct snd_usb_audio *chip, int iface,
 	bool writeable;
 	u32 bmControls;
 
+	/* First, try to find a valid clock. This may trigger
+	 * automatic clock selection if the current clock is not
+	 * valid.
+	 */
 	clock = snd_usb_clock_find_source(chip, fmt->protocol,
 					  fmt->clock, true);
-	if (clock < 0)
-		return clock;
+	if (clock < 0) {
+		/* We did not find a valid clock, but that might be
+		 * because the current sample rate does not match an
+		 * external clock source. Try again without validation
+		 * and we will do another validation after setting the
+		 * rate.
+		 */
+		clock = snd_usb_clock_find_source(chip, fmt->protocol,
+						  fmt->clock, false);
+		if (clock < 0)
+			return clock;
+	}
 
 	prev_rate = get_sample_rate_v2v3(chip, iface, fmt->altsetting, clock);
 	if (prev_rate == rate)
-		return 0;
+		goto validation;
 
 	if (fmt->protocol == UAC_VERSION_3) {
 		struct uac3_clock_source_descriptor *cs_desc;
@@ -577,6 +577,10 @@ static int set_sample_rate_v2v3(struct snd_usb_audio *chip, int iface,
 		snd_usb_set_interface_quirk(dev);
 	}
 
+validation:
+	/* validate clock after rate change */
+	if (!uac_clock_source_is_valid(chip, fmt->protocol, clock))
+		return -ENXIO;
 	return 0;
 }
 

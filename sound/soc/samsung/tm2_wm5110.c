@@ -1,14 +1,9 @@
-/*
- * Copyright (C) 2015 - 2016 Samsung Electronics Co., Ltd.
- *
- * Authors: Inha Song <ideal.song@samsung.com>
- *          Sylwester Nawrocki <s.nawrocki@samsung.com>
- *
- * This program is free software; you can redistribute  it and/or modify it
- * under  the terms of  the GNU General  Public License as published by the
- * Free Software Foundation;  either version 2 of the  License, or (at your
- * option) any later version.
- */
+// SPDX-License-Identifier: GPL-2.0+
+//
+// Copyright (C) 2015 - 2016 Samsung Electronics Co., Ltd.
+//
+// Authors: Inha Song <ideal.song@samsung.com>
+//          Sylwester Nawrocki <s.nawrocki@samsung.com>
 
 #include <linux/clk.h>
 #include <linux/gpio.h>
@@ -432,38 +427,56 @@ static struct snd_soc_dai_driver tm2_ext_dai[] = {
 	},
 };
 
+SND_SOC_DAILINK_DEFS(aif1,
+	DAILINK_COMP_ARRAY(COMP_CPU(SAMSUNG_I2S_DAI)),
+	DAILINK_COMP_ARRAY(COMP_CODEC(NULL, "wm5110-aif1")),
+	DAILINK_COMP_ARRAY(COMP_EMPTY()));
+
+SND_SOC_DAILINK_DEFS(voice,
+	DAILINK_COMP_ARRAY(COMP_CPU(SAMSUNG_I2S_DAI)),
+	DAILINK_COMP_ARRAY(COMP_CODEC(NULL, "wm5110-aif2")),
+	DAILINK_COMP_ARRAY(COMP_EMPTY()));
+
+SND_SOC_DAILINK_DEFS(bt,
+	DAILINK_COMP_ARRAY(COMP_CPU(SAMSUNG_I2S_DAI)),
+	DAILINK_COMP_ARRAY(COMP_CODEC(NULL, "wm5110-aif3")),
+	DAILINK_COMP_ARRAY(COMP_EMPTY()));
+
+SND_SOC_DAILINK_DEFS(hdmi,
+	DAILINK_COMP_ARRAY(COMP_EMPTY()),
+	DAILINK_COMP_ARRAY(COMP_EMPTY()),
+	DAILINK_COMP_ARRAY(COMP_EMPTY()));
+
 static struct snd_soc_dai_link tm2_dai_links[] = {
 	{
 		.name		= "WM5110 AIF1",
 		.stream_name	= "HiFi Primary",
-		.cpu_dai_name   = SAMSUNG_I2S_DAI,
-		.codec_dai_name = "wm5110-aif1",
 		.ops		= &tm2_aif1_ops,
 		.dai_fmt	= SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
 				  SND_SOC_DAIFMT_CBM_CFM,
+		SND_SOC_DAILINK_REG(aif1),
 	}, {
 		.name		= "WM5110 Voice",
 		.stream_name	= "Voice call",
-		.cpu_dai_name   = SAMSUNG_I2S_DAI,
-		.codec_dai_name = "wm5110-aif2",
 		.ops		= &tm2_aif2_ops,
 		.dai_fmt	= SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
 				  SND_SOC_DAIFMT_CBM_CFM,
 		.ignore_suspend = 1,
+		SND_SOC_DAILINK_REG(voice),
 	}, {
 		.name		= "WM5110 BT",
 		.stream_name	= "Bluetooth",
-		.cpu_dai_name   = SAMSUNG_I2S_DAI,
-		.codec_dai_name = "wm5110-aif3",
 		.dai_fmt	= SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
 				  SND_SOC_DAIFMT_CBM_CFM,
 		.ignore_suspend = 1,
+		SND_SOC_DAILINK_REG(bt),
 	}, {
 		.name		= "HDMI",
 		.stream_name	= "i2s1",
 		.ops		= &tm2_hdmi_ops,
 		.dai_fmt	= SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
 				  SND_SOC_DAIFMT_CBS_CFS,
+		SND_SOC_DAILINK_REG(hdmi),
 	}
 };
 
@@ -491,6 +504,7 @@ static int tm2_probe(struct platform_device *pdev)
 	struct snd_soc_card *card = &tm2_card;
 	struct tm2_machine_priv *priv;
 	struct of_phandle_args args;
+	struct snd_soc_dai_link *dai_link;
 	int num_codecs, ret, i;
 
 	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
@@ -558,18 +572,18 @@ static int tm2_probe(struct platform_device *pdev)
 	}
 
 	/* Initialize WM5110 - I2S and HDMI - I2S1 DAI links */
-	for (i = 0; i < card->num_links; i++) {
+	for_each_card_prelinks(card, i, dai_link) {
 		unsigned int dai_index = 0; /* WM5110 */
 
-		card->dai_link[i].cpu_name = NULL;
-		card->dai_link[i].platform_name = NULL;
+		dai_link->cpus->name = NULL;
+		dai_link->platforms->name = NULL;
 
 		if (num_codecs > 1 && i == card->num_links - 1)
 			dai_index = 1; /* HDMI */
 
-		card->dai_link[i].codec_of_node = codec_dai_node[dai_index];
-		card->dai_link[i].cpu_of_node = cpu_dai_node[dai_index];
-		card->dai_link[i].platform_of_node = cpu_dai_node[dai_index];
+		dai_link->codecs->of_node = codec_dai_node[dai_index];
+		dai_link->cpus->of_node = cpu_dai_node[dai_index];
+		dai_link->platforms->of_node = cpu_dai_node[dai_index];
 	}
 
 	if (num_codecs > 1) {
@@ -583,7 +597,7 @@ static int tm2_probe(struct platform_device *pdev)
 			goto dai_node_put;
 		}
 
-		ret = snd_soc_get_dai_name(&args, &card->dai_link[i].codec_dai_name);
+		ret = snd_soc_get_dai_name(&args, &card->dai_link[i].codecs->dai_name);
 		if (ret) {
 			dev_err(dev, "Unable to get codec_dai_name\n");
 			goto dai_node_put;

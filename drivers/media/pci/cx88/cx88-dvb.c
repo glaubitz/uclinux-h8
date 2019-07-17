@@ -1,19 +1,10 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * device driver for Conexant 2388x based TV cards
  * MPEG Transport Stream (DVB) routines
  *
  * (c) 2004, 2005 Chris Pascoe <c.pascoe@itee.uq.edu.au>
  * (c) 2004 Gerd Knorr <kraxel@bytesex.org> [SuSE Labs]
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
  */
 
 #include "cx88.h"
@@ -1226,9 +1217,9 @@ static int dvb_register(struct cx8802_dev *dev)
 
 		/* Do a hardware reset of chip before using it. */
 		cx_clear(MO_GP0_IO, 1);
-		mdelay(100);
+		msleep(100);
 		cx_set(MO_GP0_IO, 1);
-		mdelay(200);
+		msleep(200);
 
 		/* Select RF connector callback */
 		fusionhdtv_3_gold.pll_rf_set = lgdt330x_pll_rf_set;
@@ -1248,9 +1239,9 @@ static int dvb_register(struct cx8802_dev *dev)
 
 		/* Do a hardware reset of chip before using it. */
 		cx_clear(MO_GP0_IO, 1);
-		mdelay(100);
+		msleep(100);
 		cx_set(MO_GP0_IO, 9);
-		mdelay(200);
+		msleep(200);
 		fe0->dvb.frontend = dvb_attach(lgdt330x_attach,
 					       &fusionhdtv_3_gold,
 					       0x0e,
@@ -1267,9 +1258,9 @@ static int dvb_register(struct cx8802_dev *dev)
 
 		/* Do a hardware reset of chip before using it. */
 		cx_clear(MO_GP0_IO, 1);
-		mdelay(100);
+		msleep(100);
 		cx_set(MO_GP0_IO, 1);
-		mdelay(200);
+		msleep(200);
 		fe0->dvb.frontend = dvb_attach(lgdt330x_attach,
 					       &fusionhdtv_5_gold,
 					       0x0e,
@@ -1289,9 +1280,9 @@ static int dvb_register(struct cx8802_dev *dev)
 
 		/* Do a hardware reset of chip before using it. */
 		cx_clear(MO_GP0_IO, 1);
-		mdelay(100);
+		msleep(100);
 		cx_set(MO_GP0_IO, 1);
-		mdelay(200);
+		msleep(200);
 		fe0->dvb.frontend = dvb_attach(lgdt330x_attach,
 					       &pchdtv_hd5500,
 					       0x59,
@@ -1583,9 +1574,9 @@ static int dvb_register(struct cx8802_dev *dev)
 		cx_set(MO_GP0_IO, 0x0101);
 
 		cx_clear(MO_GP0_IO, 0x01);
-		mdelay(100);
+		msleep(100);
 		cx_set(MO_GP0_IO, 0x01);
-		mdelay(200);
+		msleep(200);
 
 		fe0->dvb.frontend = dvb_attach(stv0299_attach,
 					       &samsung_stv0299_config,

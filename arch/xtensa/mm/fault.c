@@ -42,7 +42,7 @@ void do_page_fault(struct pt_regs *regs)
 	int code;
 
 	int is_write, is_exec;
-	int fault;
+	vm_fault_t fault;
 	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
 
 	code = SEGV_MAPERR;
@@ -157,7 +157,7 @@ bad_area:
 	if (user_mode(regs)) {
 		current->thread.bad_vaddr = address;
 		current->thread.error_code = is_write;
-		force_sig_fault(SIGSEGV, code, (void *) address, current);
+		force_sig_fault(SIGSEGV, code, (void *) address);
 		return;
 	}
 	bad_page_fault(regs, address, SIGSEGV);
@@ -182,7 +182,7 @@ do_sigbus:
 	 * or user mode.
 	 */
 	current->thread.bad_vaddr = address;
-	force_sig_fault(SIGBUS, BUS_ADRERR, (void *) address, current);
+	force_sig_fault(SIGBUS, BUS_ADRERR, (void *) address);
 
 	/* Kernel mode? Handle exceptions or die */
 	if (!user_mode(regs))

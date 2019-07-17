@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
  * JMicron JMC2x0 series PCIe Ethernet Linux Device Driver
  *
@@ -6,20 +7,6 @@
  * Copyright (c) 2009 - 2010 Guo-Fu Tseng <cooldavid@cooldavid.org>
  *
  * Author: Guo-Fu Tseng <cooldavid@cooldavid.org>
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
- *
  */
 
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
@@ -1911,10 +1898,10 @@ jme_wait_link(struct jme_adapter *jme)
 {
 	u32 phylink, to = JME_WAIT_LINK_TIME;
 
-	mdelay(1000);
+	msleep(1000);
 	phylink = jme_linkstat_from_phy(jme);
 	while (!(phylink & PHY_LINK_UP) && (to -= 10) > 0) {
-		mdelay(10);
+		usleep_range(10000, 11000);
 		phylink = jme_linkstat_from_phy(jme);
 	}
 }
@@ -2034,10 +2021,9 @@ static void jme_drop_tx_map(struct jme_adapter *jme, int startidx, int count)
 				ctxbi->len,
 				PCI_DMA_TODEVICE);
 
-				ctxbi->mapping = 0;
-				ctxbi->len = 0;
+		ctxbi->mapping = 0;
+		ctxbi->len = 0;
 	}
-
 }
 
 static int

@@ -1,12 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
 /*
  * Marvell 88E6xxx Ethernet switch single-chip definition
  *
  * Copyright (c) 2008 Marvell Semiconductor
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
  */
 
 #ifndef _MV88E6XXX_CHIP_H
@@ -20,17 +16,6 @@
 #include <linux/ptp_clock_kernel.h>
 #include <linux/timecounter.h>
 #include <net/dsa.h>
-
-#define SMI_CMD			0x00
-#define SMI_CMD_BUSY		BIT(15)
-#define SMI_CMD_CLAUSE_22	BIT(12)
-#define SMI_CMD_OP_22_WRITE	((1 << 10) | SMI_CMD_BUSY | SMI_CMD_CLAUSE_22)
-#define SMI_CMD_OP_22_READ	((2 << 10) | SMI_CMD_BUSY | SMI_CMD_CLAUSE_22)
-#define SMI_CMD_OP_45_WRITE_ADDR	((0 << 10) | SMI_CMD_BUSY)
-#define SMI_CMD_OP_45_WRITE_DATA	((1 << 10) | SMI_CMD_BUSY)
-#define SMI_CMD_OP_45_READ_DATA		((2 << 10) | SMI_CMD_BUSY)
-#define SMI_CMD_OP_45_READ_DATA_INC	((3 << 10) | SMI_CMD_BUSY)
-#define SMI_DATA		0x01
 
 #define MV88E6XXX_N_FID		4096
 
@@ -73,6 +58,7 @@ enum mv88e6xxx_model {
 	MV88E6190X,
 	MV88E6191,
 	MV88E6240,
+	MV88E6250,
 	MV88E6290,
 	MV88E6320,
 	MV88E6321,
@@ -91,6 +77,7 @@ enum mv88e6xxx_family {
 	MV88E6XXX_FAMILY_6097,	/* 6046 6085 6096 6097 */
 	MV88E6XXX_FAMILY_6165,	/* 6123 6161 6165 */
 	MV88E6XXX_FAMILY_6185,	/* 6108 6121 6122 6131 6152 6155 6182 6185 */
+	MV88E6XXX_FAMILY_6250,	/* 6250 */
 	MV88E6XXX_FAMILY_6320,	/* 6320 6321 */
 	MV88E6XXX_FAMILY_6341,	/* 6141 6341 */
 	MV88E6XXX_FAMILY_6351,	/* 6171 6175 6350 6351 */
@@ -123,6 +110,12 @@ struct mv88e6xxx_info {
 	 * when it is non-zero, and use indirect access to internal registers.
 	 */
 	bool multi_chip;
+	/* Dual-chip Addressing Mode
+	 * Some chips respond to only half of the 32 SMI addresses,
+	 * allowing two to coexist on the same SMI interface.
+	 */
+	bool dual_chip;
+
 	enum dsa_tag_protocol tag_protocol;
 
 	/* Mask for FromPort and ToPort value of PortVec used in ATU Move
@@ -155,6 +148,7 @@ struct mv88e6xxx_bus_ops;
 struct mv88e6xxx_irq_ops;
 struct mv88e6xxx_gpio_ops;
 struct mv88e6xxx_avb_ops;
+struct mv88e6xxx_ptp_ops;
 
 struct mv88e6xxx_irq {
 	u16 masked;
@@ -190,12 +184,16 @@ struct mv88e6xxx_port_hwtstamp {
 };
 
 struct mv88e6xxx_port {
+	struct mv88e6xxx_chip *chip;
+	int port;
 	u64 serdes_stats[2];
 	u64 atu_member_violation;
 	u64 atu_miss_violation;
 	u64 atu_full_violation;
 	u64 vtu_member_violation;
 	u64 vtu_miss_violation;
+	u8 cmode;
+	int serdes_irq;
 };
 
 struct mv88e6xxx_chip {
@@ -273,6 +271,7 @@ struct mv88e6xxx_chip {
 	struct ptp_pin_desc	pin_config[MV88E6XXX_MAX_GPIO];
 	u16 trig_config;
 	u16 evcap_config;
+	u16 enable_count;
 
 	/* Per-port timestamping resources. */
 	struct mv88e6xxx_port_hwtstamp port_hwtstamp[DSA_MAX_PORTS];
@@ -294,6 +293,11 @@ struct mv88e6xxx_mdio_bus {
 };
 
 struct mv88e6xxx_ops {
+	/* Switch Setup Errata, called early in the switch setup to
+	 * allow any errata actions to be performed
+	 */
+	int (*setup_errata)(struct mv88e6xxx_chip *chip);
+
 	int (*ieee_pri_map)(struct mv88e6xxx_chip *chip);
 	int (*ip_pri_map)(struct mv88e6xxx_chip *chip);
 
@@ -349,6 +353,13 @@ struct mv88e6xxx_ops {
 	 */
 	int (*port_set_duplex)(struct mv88e6xxx_chip *chip, int port, int dup);
 
+#define PAUSE_ON		1
+#define PAUSE_OFF		0
+
+	/* Enable/disable sending Pause */
+	int (*port_set_pause)(struct mv88e6xxx_chip *chip, int port,
+			      int pause);
+
 #define SPEED_MAX		INT_MAX
 #define SPEED_UNFORCED		-2
 
@@ -358,6 +369,9 @@ struct mv88e6xxx_ops {
 	 * Use SPEED_UNFORCED for normal detection, SPEED_MAX for max value.
 	 */
 	int (*port_set_speed)(struct mv88e6xxx_chip *chip, int port, int speed);
+
+	/* What interface mode should be used for maximum speed? */
+	phy_interface_t (*port_max_speed_mode)(int port);
 
 	int (*port_tag_remap)(struct mv88e6xxx_chip *chip, int port);
 
@@ -381,12 +395,16 @@ struct mv88e6xxx_ops {
 	 */
 	int (*port_set_cmode)(struct mv88e6xxx_chip *chip, int port,
 			      phy_interface_t mode);
+	int (*port_get_cmode)(struct mv88e6xxx_chip *chip, int port, u8 *cmode);
 
 	/* Some devices have a per port register indicating what is
 	 * the upstream port this port should forward to.
 	 */
 	int (*port_set_upstream_port)(struct mv88e6xxx_chip *chip, int port,
 				      int upstream_port);
+	/* Return the port link state, as required by phylink */
+	int (*port_link_state)(struct mv88e6xxx_chip *chip, int port,
+			       struct phylink_link_state *state);
 
 	/* Snapshot the statistics for a port. The statistics can then
 	 * be read back a leisure but still with a consistent view.
@@ -418,6 +436,10 @@ struct mv88e6xxx_ops {
 	/* Power on/off a SERDES interface */
 	int (*serdes_power)(struct mv88e6xxx_chip *chip, int port, bool on);
 
+	/* SERDES interrupt handling */
+	int (*serdes_irq_setup)(struct mv88e6xxx_chip *chip, int port);
+	void (*serdes_irq_free)(struct mv88e6xxx_chip *chip, int port);
+
 	/* Statistics from the SERDES interface */
 	int (*serdes_get_sset_count)(struct mv88e6xxx_chip *chip, int port);
 	int (*serdes_get_strings)(struct mv88e6xxx_chip *chip,  int port,
@@ -439,6 +461,14 @@ struct mv88e6xxx_ops {
 
 	/* Remote Management Unit operations */
 	int (*rmu_disable)(struct mv88e6xxx_chip *chip);
+
+	/* Precision Time Protocol operations */
+	const struct mv88e6xxx_ptp_ops *ptp_ops;
+
+	/* Phylink */
+	void (*phylink_validate)(struct mv88e6xxx_chip *chip, int port,
+				 unsigned long *mask,
+				 struct phylink_link_state *state);
 };
 
 struct mv88e6xxx_irq_ops {
@@ -486,6 +516,24 @@ struct mv88e6xxx_avb_ops {
 	int (*tai_write)(struct mv88e6xxx_chip *chip, int addr, u16 data);
 };
 
+struct mv88e6xxx_ptp_ops {
+	u64 (*clock_read)(const struct cyclecounter *cc);
+	int (*ptp_enable)(struct ptp_clock_info *ptp,
+			  struct ptp_clock_request *rq, int on);
+	int (*ptp_verify)(struct ptp_clock_info *ptp, unsigned int pin,
+			  enum ptp_pin_function func, unsigned int chan);
+	void (*event_work)(struct work_struct *ugly);
+	int (*port_enable)(struct mv88e6xxx_chip *chip, int port);
+	int (*port_disable)(struct mv88e6xxx_chip *chip, int port);
+	int (*global_enable)(struct mv88e6xxx_chip *chip);
+	int (*global_disable)(struct mv88e6xxx_chip *chip);
+	int n_ext_ts;
+	int arr0_sts_reg;
+	int arr1_sts_reg;
+	int dep_sts_reg;
+	u32 rx_filters;
+};
+
 #define STATS_TYPE_PORT		BIT(0)
 #define STATS_TYPE_BANK0	BIT(1)
 #define STATS_TYPE_BANK1	BIT(2)
@@ -527,6 +575,19 @@ int mv88e6xxx_write(struct mv88e6xxx_chip *chip, int addr, int reg, u16 val);
 int mv88e6xxx_update(struct mv88e6xxx_chip *chip, int addr, int reg,
 		     u16 update);
 int mv88e6xxx_wait(struct mv88e6xxx_chip *chip, int addr, int reg, u16 mask);
+int mv88e6xxx_port_setup_mac(struct mv88e6xxx_chip *chip, int port, int link,
+			     int speed, int duplex, int pause,
+			     phy_interface_t mode);
 struct mii_bus *mv88e6xxx_default_mdio_bus(struct mv88e6xxx_chip *chip);
+
+static inline void mv88e6xxx_reg_lock(struct mv88e6xxx_chip *chip)
+{
+	mutex_lock(&chip->reg_lock);
+}
+
+static inline void mv88e6xxx_reg_unlock(struct mv88e6xxx_chip *chip)
+{
+	mutex_unlock(&chip->reg_lock);
+}
 
 #endif /* _MV88E6XXX_CHIP_H */

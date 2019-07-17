@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
  * NVIDIA Tegra DRM GEM helper functions
  *
@@ -7,10 +8,6 @@
  * Based on the GEM/CMA helpers
  *
  * Copyright (c) 2011 Samsung Electronics Co., Ltd.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
  */
 
 #include <linux/dma-buf.h>
@@ -204,7 +201,7 @@ static void tegra_bo_free(struct drm_device *drm, struct tegra_bo *bo)
 {
 	if (bo->pages) {
 		dma_unmap_sg(drm->dev, bo->sgt->sgl, bo->sgt->nents,
-			     DMA_BIDIRECTIONAL);
+			     DMA_FROM_DEVICE);
 		drm_gem_put_pages(&bo->gem, bo->pages, true, true);
 		sg_free_table(bo->sgt);
 		kfree(bo->sgt);
@@ -230,7 +227,7 @@ static int tegra_bo_get_pages(struct drm_device *drm, struct tegra_bo *bo)
 	}
 
 	err = dma_map_sg(drm->dev, bo->sgt->sgl, bo->sgt->nents,
-			 DMA_BIDIRECTIONAL);
+			 DMA_FROM_DEVICE);
 	if (err == 0) {
 		err = -EFAULT;
 		goto free_sgt;
@@ -582,18 +579,6 @@ static int tegra_gem_prime_end_cpu_access(struct dma_buf *buf,
 	return 0;
 }
 
-static void *tegra_gem_prime_kmap_atomic(struct dma_buf *buf,
-					 unsigned long page)
-{
-	return NULL;
-}
-
-static void tegra_gem_prime_kunmap_atomic(struct dma_buf *buf,
-					  unsigned long page,
-					  void *addr)
-{
-}
-
 static void *tegra_gem_prime_kmap(struct dma_buf *buf, unsigned long page)
 {
 	return NULL;
@@ -634,8 +619,6 @@ static const struct dma_buf_ops tegra_gem_prime_dmabuf_ops = {
 	.release = tegra_gem_prime_release,
 	.begin_cpu_access = tegra_gem_prime_begin_cpu_access,
 	.end_cpu_access = tegra_gem_prime_end_cpu_access,
-	.map_atomic = tegra_gem_prime_kmap_atomic,
-	.unmap_atomic = tegra_gem_prime_kunmap_atomic,
 	.map = tegra_gem_prime_kmap,
 	.unmap = tegra_gem_prime_kunmap,
 	.mmap = tegra_gem_prime_mmap,

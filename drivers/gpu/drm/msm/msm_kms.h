@@ -1,18 +1,8 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
 /*
+ * Copyright (c) 2016-2018, The Linux Foundation. All rights reserved.
  * Copyright (C) 2013 Red Hat
  * Author: Rob Clark <robdclark@gmail.com>
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms of the GNU General Public License version 2 as published by
- * the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef __MSM_KMS_H__
@@ -42,6 +32,7 @@ struct msm_kms_funcs {
 	void (*disable_vblank)(struct msm_kms *kms, struct drm_crtc *crtc);
 	/* modeset, bracketing atomic_commit(): */
 	void (*prepare_commit)(struct msm_kms *kms, struct drm_atomic_state *state);
+	void (*commit)(struct msm_kms *kms, struct drm_atomic_state *state);
 	void (*complete_commit)(struct msm_kms *kms, struct drm_atomic_state *state);
 	/* functions to wait for atomic commit completed on each CRTC */
 	void (*wait_for_crtc_commit_done)(struct msm_kms *kms,
@@ -50,6 +41,11 @@ struct msm_kms_funcs {
 	const struct msm_format *(*get_format)(struct msm_kms *kms,
 					const uint32_t format,
 					const uint64_t modifiers);
+	/* do format checking on format modified through fb_cmd2 modifiers */
+	int (*check_modified_format)(const struct msm_kms *kms,
+			const struct msm_format *msm_fmt,
+			const struct drm_mode_fb_cmd2 *cmd,
+			struct drm_gem_object **bos);
 	/* misc: */
 	long (*round_pixclk)(struct msm_kms *kms, unsigned long rate,
 			struct drm_encoder *encoder);
@@ -86,9 +82,20 @@ static inline void msm_kms_init(struct msm_kms *kms,
 
 struct msm_kms *mdp4_kms_init(struct drm_device *dev);
 struct msm_kms *mdp5_kms_init(struct drm_device *dev);
-int msm_mdss_init(struct drm_device *dev);
-void msm_mdss_destroy(struct drm_device *dev);
-int msm_mdss_enable(struct msm_mdss *mdss);
-int msm_mdss_disable(struct msm_mdss *mdss);
+struct msm_kms *dpu_kms_init(struct drm_device *dev);
+
+struct msm_mdss_funcs {
+	int (*enable)(struct msm_mdss *mdss);
+	int (*disable)(struct msm_mdss *mdss);
+	void (*destroy)(struct drm_device *dev);
+};
+
+struct msm_mdss {
+	struct drm_device *dev;
+	const struct msm_mdss_funcs *funcs;
+};
+
+int mdp5_mdss_init(struct drm_device *dev);
+int dpu_mdss_init(struct drm_device *dev);
 
 #endif /* __MSM_KMS_H__ */

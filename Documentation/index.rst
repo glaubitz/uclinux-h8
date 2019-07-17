@@ -1,7 +1,10 @@
+
 .. The Linux Kernel documentation master file, created by
    sphinx-quickstart on Fri Feb 12 13:51:46 2016.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
+
+.. _linux_doc:
 
 The Linux Kernel documentation
 ==============================
@@ -20,10 +23,7 @@ The following describes the license of the Linux kernel source code
 (GPLv2), how to properly mark the license of individual files in the source
 tree, as well as links to the full license text.
 
-.. toctree::
-   :maxdepth: 2
-
-   process/license-rules.rst
+* :ref:`kernel_licensing`
 
 User-oriented documentation
 ---------------------------
@@ -35,6 +35,17 @@ trying to get it to work optimally on a given system.
    :maxdepth: 2
 
    admin-guide/index
+   kbuild/index
+
+Firmware-related documentation
+------------------------------
+The following holds information on the kernel's expectations regarding the
+platform firmwares.
+
+.. toctree::
+   :maxdepth: 2
+
+   firmware-guide/index
 
 Application-developer documentation
 -----------------------------------
@@ -46,6 +57,7 @@ the kernel interface as seen by application developers.
    :maxdepth: 2
 
    userspace-api/index
+   ioctl/index
 
 
 Introduction to kernel development
@@ -66,6 +78,9 @@ merged much easier.
    kernel-hacking/index
    trace/index
    maintainer/index
+   fault-injection/index
+   livepatch/index
+
 
 Kernel API documentation
 ------------------------
@@ -81,15 +96,38 @@ needed).
 
    driver-api/index
    core-api/index
+   locking/index
+   accounting/index
+   block/index
+   cdrom/index
+   ide/index
+   fb/index
+   fpga/index
+   hid/index
+   iio/index
+   infiniband/index
+   leds/index
    media/index
+   netlabel/index
    networking/index
+   pcmcia/index
+   target/index
+   timers/index
+   watchdog/index
    input/index
+   hwmon/index
    gpu/index
    security/index
    sound/index
    crypto/index
    filesystems/index
    vm/index
+   bpf/index
+   usb/index
+   PCI/index
+   misc-devices/index
+   mic/index
+   scheduler/index
 
 Architecture-specific documentation
 -----------------------------------
@@ -101,30 +139,35 @@ implementation.
    :maxdepth: 2
 
    sh/index
+   arm/index
+   arm64/index
+   ia64/index
+   m68k/index
+   riscv/index
+   s390/index
+   sh/index
+   sparc/index
+   x86/index
+   xtensa/index
 
-Korean translations
--------------------
+Filesystem Documentation
+------------------------
 
-.. toctree::
-   :maxdepth: 1
-
-   translations/ko_KR/index
-
-Chinese translations
---------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   translations/zh_CN/index
-
-Japanese translations
----------------------
+The documentation in this section are provided by specific filesystem
+subprojects.
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   translations/ja_JP/index
+   filesystems/ext4/index
+
+Translations
+------------
+
+.. toctree::
+   :maxdepth: 2
+
+   translations/index
 
 Indices and tables
 ==================

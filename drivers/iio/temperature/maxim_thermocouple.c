@@ -10,6 +10,8 @@
 #include <linux/init.h>
 #include <linux/mutex.h>
 #include <linux/err.h>
+#include <linux/of.h>
+#include <linux/of_device.h>
 #include <linux/spi/spi.h>
 #include <linux/iio/iio.h>
 #include <linux/iio/trigger.h>
@@ -258,14 +260,21 @@ static int maxim_thermocouple_remove(struct spi_device *spi)
 static const struct spi_device_id maxim_thermocouple_id[] = {
 	{"max6675", MAX6675},
 	{"max31855", MAX31855},
-	{"max31856", MAX31855},
 	{},
 };
 MODULE_DEVICE_TABLE(spi, maxim_thermocouple_id);
 
+static const struct of_device_id maxim_thermocouple_of_match[] = {
+        { .compatible = "maxim,max6675" },
+        { .compatible = "maxim,max31855" },
+        { },
+};
+MODULE_DEVICE_TABLE(of, maxim_thermocouple_of_match);
+
 static struct spi_driver maxim_thermocouple_driver = {
 	.driver = {
 		.name	= MAXIM_THERMOCOUPLE_DRV_NAME,
+		.of_match_table = maxim_thermocouple_of_match,
 	},
 	.probe		= maxim_thermocouple_probe,
 	.remove		= maxim_thermocouple_remove,

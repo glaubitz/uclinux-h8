@@ -1,9 +1,6 @@
+/* SPDX-License-Identifier: GPL-2.0-only */
 /*
  * Copyright (c) 2018 Chelsio Communications, Inc.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
  */
 
 #ifndef __CHTLS_H__
@@ -96,6 +93,10 @@ enum csk_flags {
 	CSK_CONN_INLINE,	/* Connection on HW */
 };
 
+enum chtls_cdev_state {
+	CHTLS_CDEV_STATE_UP = 1
+};
+
 struct listen_ctx {
 	struct sock *lsk;
 	struct chtls_dev *cdev;
@@ -146,6 +147,12 @@ struct chtls_dev {
 	unsigned int send_page_order;
 	int max_host_sndbuf;
 	struct key_map kmap;
+	unsigned int cdev_state;
+};
+
+struct chtls_listen {
+	struct chtls_dev *cdev;
+	struct sock *sk;
 };
 
 struct chtls_hws {
@@ -210,6 +217,8 @@ struct chtls_sock {
 	u16 resv2;
 	u32 delack_mode;
 	u32 delack_seq;
+	u32 snd_win;
+	u32 rcv_win;
 
 	void *passive_reap_next;        /* placeholder for passive */
 	struct chtls_hws tlshws;
