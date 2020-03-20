@@ -51,6 +51,7 @@
 /* Some macros to manipulate ports and their bits */
 
 #define SETPORT(VAL, PORT)	outb( (VAL), shpnt->base + (PORT) )
+
 #define GETPORT(PORT)		inb( shpnt->base + PORT )
 
 
@@ -143,16 +144,16 @@ enum spc_state {
  *
  */
 struct spc_hostdata {
-	Scsi_Cmnd *issue_SC;
+	struct scsi_cmnd *issue_SC;
 		/* pending commands to issue */
 
-	Scsi_Cmnd *current_SC;
+	struct scsi_cmnd *current_SC;
 		/* current command on the bus */
 
-	Scsi_Cmnd *disconnected_SC;
+	struct scsi_cmnd *disconnected_SC;
 		/* commands that disconnected */
 
-	Scsi_Cmnd *done_SC;
+	struct scsi_cmnd *done_SC;
 		/* command that was completed */
 
 	spinlock_t lock;
@@ -217,7 +218,7 @@ struct spc_hostdata {
  *
  */
 struct spc_scdata {
-	Scsi_Cmnd *next;	/* next sc in queue */
+	struct scsi_cmnd *next;	/* next sc in queue */
 	struct completion *done;/* semaphore to block on */
 	struct scsi_eh_save ses;
 };
@@ -327,12 +328,11 @@ static struct {
 
 /* setup & interrupt */
 static irqreturn_t spc_intr(int irq, void *dev_id);
-static void reset_ports(struct Scsi_Host *shpnt);
 static void spc_error(struct Scsi_Host *shpnt, char *msg);
 static void done(struct Scsi_Host *shpnt, int error);
 
 /* diagnostics */
-static void show_command(Scsi_Cmnd * ptr);
+static void show_command(struct scsi_cmnd * ptr);
 static void show_queues(struct Scsi_Host *shpnt);
 
 
@@ -340,9 +340,9 @@ static void show_queues(struct Scsi_Host *shpnt);
  *  queue services:
  *
  */
-static inline void append_SC(Scsi_Cmnd **SC, Scsi_Cmnd *new_SC)
+static inline void append_SC(struct scsi_cmnd **SC, struct scsi_cmnd *new_SC)
 {
-	Scsi_Cmnd *end;
+	struct scsi_cmnd *end;
 
 	SCNEXT(new_SC) = NULL;
 	if (!*SC)
@@ -354,9 +354,9 @@ static inline void append_SC(Scsi_Cmnd **SC, Scsi_Cmnd *new_SC)
 	}
 }
 
-static inline Scsi_Cmnd *remove_first_SC(Scsi_Cmnd ** SC)
+static inline struct scsi_cmnd *remove_first_SC(struct scsi_cmnd ** SC)
 {
-	Scsi_Cmnd *ptr;
+	struct scsi_cmnd *ptr;
 
 	ptr = *SC;
 	if (ptr) {
@@ -366,9 +366,9 @@ static inline Scsi_Cmnd *remove_first_SC(Scsi_Cmnd ** SC)
 	return ptr;
 }
 
-static inline Scsi_Cmnd *remove_lun_SC(Scsi_Cmnd ** SC, int target, int lun)
+static inline struct scsi_cmnd *remove_lun_SC(struct scsi_cmnd ** SC, int target, int lun)
 {
-	Scsi_Cmnd *ptr, *prev;
+	struct scsi_cmnd *ptr, *prev;
 
 	for (ptr = *SC, prev = NULL;
 	     ptr && ((ptr->device->id != target) || (ptr->device->lun != lun));
@@ -387,9 +387,9 @@ static inline Scsi_Cmnd *remove_lun_SC(Scsi_Cmnd ** SC, int target, int lun)
 	return ptr;
 }
 
-static inline Scsi_Cmnd *remove_SC(Scsi_Cmnd **SC, Scsi_Cmnd *SCp)
+static inline struct scsi_cmnd *remove_SC(struct scsi_cmnd **SC, struct scsi_cmnd *SCp)
 {
-	Scsi_Cmnd *ptr, *prev;
+	struct scsi_cmnd *ptr, *prev;
 
 	for (ptr = *SC, prev = NULL;
 	     ptr && SCp!=ptr;
@@ -412,8 +412,8 @@ static void run(struct work_struct *work);
 /*
  *  Queue a command and setup interrupts for a free bus.
  */
-static int spc_internal_queue(Scsi_Cmnd *SCpnt, struct completion *complete,
-		int phase, void (*done)(Scsi_Cmnd *))
+static int spc_internal_queue(struct scsi_cmnd *SCpnt, struct completion *complete,
+		int phase, void (*done)(struct scsi_cmnd *))
 {
 	struct Scsi_Host *shpnt = SCpnt->device->host;
 	unsigned long flags;
@@ -484,7 +484,7 @@ static int spc_internal_queue(Scsi_Cmnd *SCpnt, struct completion *complete,
  *  queue a command
  *
  */
-static int spc_queue_lck(Scsi_Cmnd *SCpnt, void (*done)(Scsi_Cmnd *))
+static int spc_queue_lck(struct scsi_cmnd *SCpnt, void (*done)(struct scsi_cmnd *))
 {
 	return spc_internal_queue(SCpnt, NULL, 0, done);
 }
@@ -494,7 +494,7 @@ static DEF_SCSI_QCMD(spc_queue)
 /*
  *
  */
-static void reset_done(Scsi_Cmnd *SCpnt)
+static void reset_done(struct scsi_cmnd *SCpnt)
 {
 	if(SCSEM(SCpnt)) {
 		complete(SCSEM(SCpnt));
@@ -507,10 +507,10 @@ static void reset_done(Scsi_Cmnd *SCpnt)
  *  Abort a command
  *
  */
-static int spc_abort(Scsi_Cmnd *SCpnt)
+static int spc_abort(struct scsi_cmnd *SCpnt)
 {
 	struct Scsi_Host *shpnt = SCpnt->device->host;
-	Scsi_Cmnd *ptr;
+	struct scsi_cmnd *ptr;
 	unsigned long flags;
 
 	DO_LOCK(flags);
@@ -544,7 +544,7 @@ static int spc_abort(Scsi_Cmnd *SCpnt)
  * Reset a device
  *
  */
-static int spc_device_reset(Scsi_Cmnd * SCpnt)
+static int spc_device_reset(struct scsi_cmnd * SCpnt)
 {
 	struct Scsi_Host *shpnt = SCpnt->device->host;
 	DECLARE_COMPLETION(done);
@@ -600,13 +600,13 @@ static int spc_device_reset(Scsi_Cmnd * SCpnt)
 	return ret;
 }
 
-static void free_hard_reset_SCs(struct Scsi_Host *shpnt, Scsi_Cmnd **SCs)
+static void free_hard_reset_SCs(struct Scsi_Host *shpnt, struct scsi_cmnd **SCs)
 {
-	Scsi_Cmnd *ptr;
+	struct scsi_cmnd *ptr;
 
 	ptr=*SCs;
 	while(ptr) {
-		Scsi_Cmnd *next;
+		struct scsi_cmnd *next;
 
 		if(SCDATA(ptr)) {
 			next = SCNEXT(ptr);
@@ -631,8 +631,9 @@ static void free_hard_reset_SCs(struct Scsi_Host *shpnt, Scsi_Cmnd **SCs)
  * Reset the bus
  *
  */
-static int spc_bus_reset_host(struct Scsi_Host *shpnt)
+static int spc_bus_reset_host(struct scsi_cmnd *cmd)
 {
+	struct Scsi_Host *shpnt = cmd->device->host;
 	unsigned long flags;
 
 	DO_LOCK(flags);
@@ -667,10 +668,10 @@ static int spc_host_reset_host(struct Scsi_Host *shpnt)
  * Reset the host (bus and controller)
  *
  */
-static int spc_host_reset(Scsi_Cmnd *SCpnt)
+static int spc_host_reset(struct scsi_cmnd *SCpnt)
 {
 	spc_host_reset_host(SCpnt->device->host);
-	spc_bus_reset_host(SCpnt->device->host);
+	spc_bus_reset_host(SCpnt);
 	return SUCCESS;
 }
 
@@ -811,7 +812,7 @@ static void busfree_run(struct Scsi_Host *shpnt)
 
 			if(!(DONE_SC->SCp.phase & not_issued)) {
 				struct spc_scdata *sc;
-				Scsi_Cmnd *ptr = DONE_SC;
+				struct scsi_cmnd *ptr = DONE_SC;
 				DONE_SC=NULL;
 
 				sc = SCDATA(ptr);
@@ -826,7 +827,7 @@ static void busfree_run(struct Scsi_Host *shpnt)
 		}
 
 		if(DONE_SC && DONE_SC->scsi_done) {
-			Scsi_Cmnd *ptr = DONE_SC;
+			struct scsi_cmnd *ptr = DONE_SC;
 			DONE_SC=NULL;
 
 			HOSTDATA(shpnt)->commands--;
@@ -876,7 +877,7 @@ static void busfree_run(struct Scsi_Host *shpnt)
 		HOSTDATA(shpnt)->busfree_without_new_command++;
 #endif
 		HOSTDATA(shpnt)->sctl = GETPORT(SCTL) |
-			(DISCONNECTED_SC?0x04:0x00) & 0xfe;
+			((DISCONNECTED_SC ? 0x04 : 0x00) & 0xfe);
 		SETPORT(0x00, PCTL);
 	}
 
@@ -1237,47 +1238,34 @@ static void status_run(struct Scsi_Host *shpnt)
 static void datai_init(struct Scsi_Host *shpnt)
 {
 	SETPORT(0x01, PCTL);
-	SETPORT(0x80, SCMD);
 	DATA_LEN=0;
 }
 
 static void datai_run(struct Scsi_Host *shpnt)
 {
-	char *p;
-	int i;
-
 	/*
 	 * loop while the phase persists or the fifos are not empty
 	 *
 	 */
-	while((GETPORT(SSTS) & 0x11) == 0x10) {
-		/* FIXME: maybe this should be done by setting up
-		 * STCNT to trigger ENSWRAP interrupt, instead of
-		 * polling for DFIFOFULL
-		 */
+	do {
 
-		if(CURRENT_SC->SCp.this_residual>0) {
-			SETPORT(CURRENT_SC->SCp.this_residual >> 16, TCH);
-			SETPORT((CURRENT_SC->SCp.this_residual >> 8) & 0xff, TCM);
-			SETPORT(CURRENT_SC->SCp.this_residual & 0xff, TCL);
-			SETPORT(0x80, SCMD);
+		SETPORT(CURRENT_SC->SCp.this_residual >> 16, TCH);
+		SETPORT((CURRENT_SC->SCp.this_residual >> 8) & 0xff, TCM);
+		SETPORT(CURRENT_SC->SCp.this_residual & 0xff, TCL);
+		SETPORT(0x80, SCMD);
 
-			while(CURRENT_SC->SCp.this_residual>0) {
-				*CURRENT_SC->SCp.ptr++ = GETPORT(DREG);
-				CURRENT_SC->SCp.this_residual--;
-				DATA_LEN++;
-			}
-			if (CURRENT_SC->SCp.buffers_residual > 0) {
-				/* advance to next buffer */
-				CURRENT_SC->SCp.buffers_residual--;
-				CURRENT_SC->SCp.buffer++;
-				CURRENT_SC->SCp.ptr           = SG_ADDRESS(CURRENT_SC->SCp.buffer);
-				CURRENT_SC->SCp.this_residual = CURRENT_SC->SCp.buffer->length;
-			} else
-				break;
+		for (;CURRENT_SC->SCp.this_residual > 0;
+			CURRENT_SC->SCp.this_residual--) {
+			*CURRENT_SC->SCp.ptr++ = GETPORT(DREG);
+			DATA_LEN++;
 		}
-	}
-
+		if (CURRENT_SC->SCp.buffers_residual > 0) {
+			CURRENT_SC->SCp.buffer = sg_next(CURRENT_SC->SCp.buffer);
+			CURRENT_SC->SCp.this_residual = CURRENT_SC->SCp.buffer->length;
+			CURRENT_SC->SCp.ptr = sg_virt(CURRENT_SC->SCp.buffer);
+		}
+		CURRENT_SC->SCp.buffers_residual--;
+	} while(CURRENT_SC->SCp.buffers_residual >= 0);
 }
 
 static void datai_end(struct Scsi_Host *shpnt)
@@ -1299,9 +1287,6 @@ static void datao_init(struct Scsi_Host *shpnt)
 
 static void datao_run(struct Scsi_Host *shpnt)
 {
-	unsigned long the_time;
-	int data_count;
-
 	/* until phase changes or all data sent */
 	while(CURRENT_SC->SCp.this_residual>0) {
 		SETPORT(CURRENT_SC->SCp.this_residual >> 16, TCH);
@@ -1359,7 +1344,7 @@ static int update_state(struct Scsi_Host *shpnt)
 	} else if(ints & 0x02) {
 		STATE=parerr;
 		HOSTDATA(shpnt)->ints &= ~0x02;
-	} else if((GETPORT(SSTS) & 0xf0) == 0xa0) {
+	} else if((GETPORT(SSTS) & 0xc0) == 0x80) {
 		switch(GETPORT(PSNS) & P_MASK) {
 		case P_MSGI:	STATE=msgi;	break;
 		case P_MSGO:	STATE=msgo;	break;
@@ -1377,7 +1362,6 @@ static int update_state(struct Scsi_Host *shpnt)
 	if(STATE!=PREVSTATE) {
 		LASTSTATE=PREVSTATE;
 	}
-
 	return dataphase;
 }
 
@@ -1399,13 +1383,13 @@ static void parerr_run(struct Scsi_Host *shpnt)
  */
 static void rsti_run(struct Scsi_Host *shpnt)
 {
-	Scsi_Cmnd *ptr;
+	struct scsi_cmnd *ptr;
 
 	shost_printk(KERN_NOTICE, shpnt, "scsi reset in\n");
 
 	ptr=DISCONNECTED_SC;
 	while(ptr) {
-		Scsi_Cmnd *next = SCNEXT(ptr);
+		struct scsi_cmnd *next = SCNEXT(ptr);
 
 		if (!ptr->device->soft_reset) {
 			remove_SC(&DISCONNECTED_SC, ptr);
@@ -1433,7 +1417,6 @@ static void is_complete(struct Scsi_Host *shpnt)
 {
 	int dataphase = 0;
 	unsigned long flags;
-	int pending;
 
 	if(!shpnt)
 		return;
@@ -1528,12 +1511,12 @@ static void spc_error(struct Scsi_Host *shpnt, char *msg)
 /*
  * Show the command data of a command
  */
-static void show_command(Scsi_Cmnd *ptr)
+static void show_command(struct scsi_cmnd *ptr)
 {
 	scsi_print_command(ptr);
 	scmd_printk(KERN_DEBUG, ptr,
 		    "request_bufflen=%d; resid=%d; "
-		    "phase |%s%s%s%s%s%s%s%s%s; next=0x%p",
+		    "phase |%s%s%s%s%s%s%s%s; next=0x%p",
 		    scsi_bufflen(ptr), scsi_get_resid(ptr),
 		    (ptr->SCp.phase & not_issued) ? "not issued|" : "",
 		    (ptr->SCp.phase & selecting) ? "selecting|" : "",
@@ -1551,7 +1534,7 @@ static void show_command(Scsi_Cmnd *ptr)
  */
 static void show_queues(struct Scsi_Host *shpnt)
 {
-	Scsi_Cmnd *ptr;
+	struct scsi_cmnd *ptr;
 	unsigned long flags;
 
 	DO_LOCK(flags);
@@ -1589,7 +1572,6 @@ static struct scsi_host_template spc_driver_template = {
 	.bios_param			= spc_biosparam,
 	.can_queue			= 1,
 	.sg_tablesize			= SG_ALL,
-	.use_clustering			= DISABLE_CLUSTERING,
 	.slave_alloc			= spc_adjust_queue,
 };
 
@@ -1598,7 +1580,7 @@ static int spc_probe(struct platform_device *pdev)
 	struct Scsi_Host *shpnt;
 	const struct resource *res;
 	struct spc_platform_data *pdata = pdev->dev.platform_data;
-	struct resource *ret;
+	int ret;
 
 	shpnt = scsi_host_alloc(&spc_driver_template, sizeof(struct Scsi_Host));
 	if (!shpnt)
@@ -1621,23 +1603,25 @@ static int spc_probe(struct platform_device *pdev)
 	SETPORT(0x00, SCTL);
 	mdelay(256);
 
-	printk(KERN_INFO "spc: io=0x%08x, irq=%d, scsiid=%d\n",
+	printk(KERN_INFO "spc: io=0x%08lx, irq=%d, scsiid=%d\n",
 	       shpnt->base,
 	       shpnt->irq,
 	       shpnt->this_id);
 
 	if (!request_mem_region(res->start, res->end - res->start, "spc")) {
-		printk(KERN_ERR "spc: mem %08x busy. %d\n", res->start);
+		printk(KERN_ERR "spc: mem %08x busy.\n", res->start);
 		ret = -EBUSY;
 		goto out_host_put1;
 	}
 
-	if (ret = request_irq(shpnt->irq, spc_intr, IRQF_SHARED, "spc", shpnt)) {
-		printk(KERN_ERR "spc: irq %d busy.\n", shpnt->irq);
+	ret = request_irq(shpnt->irq, spc_intr, IRQF_SHARED, "spc", shpnt);
+	if (ret) {
+		printk(KERN_ERR "spc: irq %d busy. %d\n", shpnt->irq, ret);
 		goto out_host_put2;
 	}
 
-	if(ret = scsi_add_host(shpnt, NULL) ) {
+	ret = scsi_add_host(shpnt, NULL);
+	if (ret) {
 		printk(KERN_ERR "spc%d: failed to add host.\n", shpnt->host_no);
 		goto out_host_put3;
 	}

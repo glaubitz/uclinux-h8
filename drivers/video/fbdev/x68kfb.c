@@ -487,7 +487,7 @@ static int x68kfb_probe(struct platform_device *dev)
 	info->pseudo_palette = info->par;
 	info->par = NULL;
 	info->flags = FBINFO_FLAG_DEFAULT;
-	info->pseudo_palette = (void *)0xe82000;;
+	info->pseudo_palette = (void *)0xffe82000;;
 
 	retval = fb_alloc_cmap(&info->cmap, 256, 0);
 	if (retval < 0)

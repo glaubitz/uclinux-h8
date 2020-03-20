@@ -30,7 +30,7 @@ MODULE_AUTHOR("Yoshinori Sato <ysato@users.sourceforge.jp>");
 MODULE_DESCRIPTION("X68000 MFP serial driver");
 MODULE_LICENSE("GPL");
 
-#define MFP_USART (void *)0xe88027
+#define MFP_USART (void *)0xffe88027
 #define MFP_CSR (MFP_USART + 0)
 #define MFP_UCR (MFP_USART + 2)
 #define MFP_RSR (MFP_USART + 4)
@@ -45,7 +45,7 @@ MODULE_LICENSE("GPL");
 
 #define MFP_CTL_TIMEOUT	1000
 #define MFP_KBD_PHYS_DESC "X68Kbus/serio"
-#define MFP_KBD_IRQ 0x4c
+#define MFP_KBD_IRQ 20
 
 /*
  * mfp_lock protects serialization between mfp_command and

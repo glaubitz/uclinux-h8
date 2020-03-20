@@ -135,6 +135,7 @@ extern void config_bvme6000(void);
 extern void config_hp300(void);
 extern void config_q40(void);
 extern void config_sun3x(void);
+extern void config_x68k(void);
 
 #define MASK_256K 0xfffc0000
 
@@ -340,6 +341,11 @@ void __init setup_arch(char **cmdline_p)
 		cf_bootmem_alloc();
 		cf_mmu_context_init();
 		config_BSP(NULL, 0);
+		break;
+#endif
+#ifdef CONFIG_X68000
+	case MACH_X68000:
+		config_x68k();
 		break;
 #endif
 	default:

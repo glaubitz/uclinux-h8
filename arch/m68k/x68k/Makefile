@@ -4,8 +4,12 @@
 #
 # Copyright 2016 Yoshinori Sato
 
+ifndef CONFIG_MMU
 extra-y			:= head.o
-obj-y			+= entry.o ints.o mfp-timer.o x68k.o zs_earlyprintk.o
+obj-y			+= entry.o ints.o
+endif
+obj-y			+= mfp-timer.o x68k.o
+obj-$(CONFIG_MMU)	+= x68kints.o
 
 targets := vmlinux.bin vmlinux.bin.gz
 

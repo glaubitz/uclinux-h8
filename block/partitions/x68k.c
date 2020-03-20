@@ -13,7 +13,7 @@ int x68k_partition(struct parsed_partitions *state)
 	struct x68k_partition_info *pi;
 	int slot;
 
-	rs = read_part_sector(state, 4, &sect);
+	rs = read_part_sector(state, 2 * 2, &sect);
 	if (!rs)
 		return -1;
 
@@ -24,11 +24,11 @@ int x68k_partition(struct parsed_partitions *state)
 
 	pi = &rs->partition[0];
 	for (slot = 1; slot < 16; slot++, pi++) {
-		if (pi->start >= 0x01000000 || !pi->start)
+		if (!pi->start)
 			continue;
 		put_partition(state, slot,
-			      be32_to_cpu(pi->start) * 2,
-			      be32_to_cpu(pi->length) * 2);
+			      (be32_to_cpu(pi->start) & 0xffffff) * 2,
+			      (be32_to_cpu(pi->length) & 0xffffff) * 2);
 	}
 	strlcat(state->pp_buf, "\n", PAGE_SIZE);
 

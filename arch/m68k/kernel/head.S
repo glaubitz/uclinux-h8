@@ -534,6 +534,7 @@ func_define	putn,1
 #define is_not_apollo(lab) cmpl &MACH_APOLLO,%pc@(m68k_machtype); jne lab
 #define is_not_q40(lab) cmpl &MACH_Q40,%pc@(m68k_machtype); jne lab
 #define is_not_sun3x(lab) cmpl &MACH_SUN3X,%pc@(m68k_machtype); jne lab
+#define is_not_x68000(lab) cmpl &MACH_X68000,%pc@(m68k_machtype); jne lab
 
 #define hasnt_leds(lab) cmpl &MACH_HP300,%pc@(m68k_machtype); \
 			jeq 42f; \
@@ -1244,6 +1245,16 @@ L(notsun3x):
 	mmu_map         #0x80000000,#0,#0x02000000,#_PAGE_NOCACHE030
 
 L(notapollo):
+	jbra	L(mmu_init_done)
+#endif
+
+#ifdef CONFIG_X68000
+	is_not_x68000(L(notx68000))
+
+	putc	'X'
+	mmu_map	#0xff000000,#0x00000000,#0x01000000,#_PAGE_NOCACHE030
+
+L(notx68000):
 	jbra	L(mmu_init_done)
 #endif
 
@@ -2807,6 +2818,21 @@ LMFP_UDR     = 0xfffa2f
 #endif
 #endif	/* CONFIG_ATARI */
 
+#ifdef CONFIG_X68000
+/* Initialisation table for SCC with 5 MHz PCLK */
+L(scc_initable_x68000):
+	.byte	4,0x44		/* x16, 1 stopbit, no parity */
+	.byte	3,0xc0		/* receiver: 8 bpc */
+	.byte	5,0xe2		/* transmitter: 8 bpc, assert dtr/rts */
+	.byte	14,0x00		/* Baud rate generator disable */
+	.byte	12,2,13,0	/* 38400 baud */
+	.byte	14,0x03		/* Baud rate generator enable */
+	.byte	3,0xc1		/* enable receiver */
+	.byte	5,0xea		/* enable transmitter */
+	.byte	-1
+	.even
+#endif /* CONFIG_X68000 */
+
 /*
  * Serial port output support.
  */
@@ -2825,6 +2851,10 @@ func_start	serial_init,%d0/%d1/%a0/%a1
 	 *		a1 = Liobase address/address of scc_initable_atari
 	 *		d0 = init data for serial port
 	 *	CONFIG_MAC
+	 *		a0 = address of SCC
+	 *		a1 = address of scc_initable_mac
+	 *		d0 = init data for serial port
+	 *	CONFIG_X68000
 	 *		a0 = address of SCC
 	 *		a1 = address of scc_initable_mac
 	 *		d0 = init data for serial port
@@ -2977,6 +3007,28 @@ L(serial_init_not_mvme16x):
 /* We count on the boot loader initialising the UART */
 #endif
 
+#ifdef CONFIG_X68000
+	is_not_x68000(1f)
+	movel	#X68K_SCC_CTRL_A,%a0
+	/* Reset SCC register pointer */
+	moveb	%a0@,%d0
+	/* Reset SCC device: write register pointer then register value */
+	moveb	#9,%a0@
+	moveb	#0xc0,%a0@
+	/* Wait for 5 PCLK cycles, which is about 33 CPU cycles */
+	/* 5 / 5 MHz = approx. 0.1 us = 33 MHz */
+	movel	#10,%d0
+3:
+	subq	#1,%d0
+	jne	3b
+	lea	%pc@(L(scc_initable_x68000)),%a1
+2:	moveb	%a1@+,%d0
+	jmi	1f
+	moveb	%d0,%a0@
+	moveb	%a1@+,%a0@
+	jra	2b
+1:
+#endif
 L(serial_init_done):
 func_return	serial_init
 
@@ -3185,6 +3237,14 @@ func_start	serial_putc,%d0/%d1/%a0/%a1
 	jbra	L(serial_putc_done)
 3:
 #endif
+#ifdef CONFIG_X68000
+	is_not_x68000(5f)
+3:	btst	#2,X68K_SCC_CTRL_A
+	jeq	3b
+	moveb	%d0,X68K_SCC_DATA_A
+	jra	L(serial_putc_done)
+5:
+#endif	/* CONFIG_X68000 */
 
 L(serial_putc_done):
 func_return	serial_putc
@@ -3843,6 +3903,11 @@ L(uartbase):
 	.long	0
 L(uart_scode):
 	.long	-1
+#endif
+
+#if defined (CONFIG_X68000)
+X68K_SCC_CTRL_A	= 0xffe98005
+X68K_SCC_DATA_A	= 0xffe98007
 #endif
 
 __FINIT

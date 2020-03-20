@@ -9,11 +9,18 @@
 #include <linux/clockchips.h>
 
 #define INPUT_FREQ (4000000 / 200)
-#define MFP_IRQ 0x44
+#define MFP_IRQ 12
+#if !defined(CONFIG_MMU)
 #define TDDR (void *)0xe88025
 #define TCDCR (void *)0xe8801d
 #define IERB (void *)0xe88009
 #define IMRB (void *)0xe88015
+#else
+#define TDDR (void *)0xffe88025
+#define TCDCR (void *)0xffe8801d
+#define IERB (void *)0xffe88009
+#define IMRB (void *)0xffe88015
+#endif
 
 static irqreturn_t interrupt(int irq, void *dev_id)
 {
@@ -41,8 +48,10 @@ static struct clock_event_device mfp_ced = {
 
 void __init hw_timer_init(irq_handler_t handler)
 {
-	if (request_irq(MFP_IRQ, interrupt, IRQF_TIMER, "timer", &mfp_ced) < 0) {
-		pr_err("%s: Failed to request_irq\n", __func__);
+	int ret;
+	ret = request_irq(MFP_IRQ, interrupt, IRQF_TIMER, "timer", &mfp_ced);
+	if (ret < 0) {
+		pr_err("%s: Failed to request_irq %d\n", __func__, ret);
 		return;
 	}
 	clockevents_config_and_register(&mfp_ced, INPUT_FREQ, 2, 0xff);

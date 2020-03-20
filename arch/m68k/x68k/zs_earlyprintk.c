@@ -4,8 +4,13 @@
 #include <linux/io.h>
 #include <linux/platform_device.h>
 
+#if !defined(CONFIG_MMU)
 #define CMD ((void *)0xe98005)
 #define DATA ((void *)0xe98007)
+#else
+#define CMD ((void *)0xffe98005)
+#define DATA ((void *)0xffe98007)
+#endif
 
 static void zs_write(struct console *co, const char *ptr,
 				 unsigned len)
