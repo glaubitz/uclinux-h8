@@ -1248,7 +1248,6 @@ static void datai_run(struct Scsi_Host *shpnt)
 	 *
 	 */
 	do {
-
 		SETPORT(CURRENT_SC->SCp.this_residual >> 16, TCH);
 		SETPORT((CURRENT_SC->SCp.this_residual >> 8) & 0xff, TCM);
 		SETPORT(CURRENT_SC->SCp.this_residual & 0xff, TCL);
@@ -1280,7 +1279,7 @@ static void datai_end(struct Scsi_Host *shpnt)
  */
 static void datao_init(struct Scsi_Host *shpnt)
 {
-	SETPORT(0x07, PCTL);
+	SETPORT(0x00, PCTL);
 
 	DATA_LEN = scsi_get_resid(CURRENT_SC);
 }
@@ -1288,31 +1287,30 @@ static void datao_init(struct Scsi_Host *shpnt)
 static void datao_run(struct Scsi_Host *shpnt)
 {
 	/* until phase changes or all data sent */
-	while(CURRENT_SC->SCp.this_residual>0) {
+	do {
 		SETPORT(CURRENT_SC->SCp.this_residual >> 16, TCH);
 		SETPORT((CURRENT_SC->SCp.this_residual >> 8) & 0xff, TCM);
 		SETPORT(CURRENT_SC->SCp.this_residual & 0xff, TCL);
 		SETPORT(0x80, SCMD);
 
-		while(CURRENT_SC->SCp.this_residual>0) {
+		for (;CURRENT_SC->SCp.this_residual > 0;
+			CURRENT_SC->SCp.this_residual--) {
 			SETPORT(*CURRENT_SC->SCp.ptr++, DREG);
-			CURRENT_SC->SCp.this_residual--;
-			CMD_INC_RESID(CURRENT_SC, -1);
 		}
 
-		if(CURRENT_SC->SCp.this_residual==0 && CURRENT_SC->SCp.buffers_residual>0) {
+		if(CURRENT_SC->SCp.buffers_residual>0) {
 			/* advance to next buffer */
-			CURRENT_SC->SCp.buffers_residual--;
-			CURRENT_SC->SCp.buffer++;
-			CURRENT_SC->SCp.ptr           = SG_ADDRESS(CURRENT_SC->SCp.buffer);
+			CURRENT_SC->SCp.buffer = sg_next(CURRENT_SC->SCp.buffer);
 			CURRENT_SC->SCp.this_residual = CURRENT_SC->SCp.buffer->length;
+			CURRENT_SC->SCp.ptr = sg_virt(CURRENT_SC->SCp.buffer);
 		}
-
-	}
+		CURRENT_SC->SCp.buffers_residual--;
+	} while(CURRENT_SC->SCp.buffers_residual >= 0);
 }
 
 static void datao_end(struct Scsi_Host *shpnt)
 {
+	CMD_INC_RESID(CURRENT_SC, -DATA_LEN);
 }
 
 /*
