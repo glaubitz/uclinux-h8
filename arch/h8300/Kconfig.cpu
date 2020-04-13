@@ -28,17 +28,14 @@ menu "Processor type and features"
 choice
 prompt "H8/300 platform"
 
-config H8300_AE3068
-	bool "AE-3068/69"
+config H8300_AE3069
+	bool "AE-3069"
 	select H83069
 	select RAMKERNEL
 	help
-	  AKI-H8/3068F / AKI-H8/3069F Flashmicom LAN Board Support
+	  AKI-H8/3069F Flashmicom LAN Board Support
 	  More Information. (Japanese Only)
 	  <http://akizukidenshi.com/catalog/default.aspx>
-	  AE-3068/69 Evaluation Board Support
-	  More Information.
-	  <http://www.microtronique.com/ae3069lan.htm>
 
 config H8300_H8MAX
 	bool "H8MAX"

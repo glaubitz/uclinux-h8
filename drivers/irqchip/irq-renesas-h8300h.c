@@ -8,6 +8,7 @@
 #include <linux/init.h>
 #include <linux/irq.h>
 #include <linux/irqchip.h>
+#include <linux/irqdomain.h>
 #include <linux/of_address.h>
 #include <linux/of_irq.h>
 #include <asm/io.h>
@@ -22,69 +23,91 @@ static const char ipr_bit[] = {
 	10, 10, 10, 10,  9,  9,  9,  9,
 };
 
-static void __iomem *intc_baseaddr;
+#define NR_IRQS 64
+#define EXTIRQ 12
+#define INTIRQ 20
 
 #define ISCR (intc_baseaddr + 2)
 #define IER (intc_baseaddr + 3)
 #define ISR (intc_baseaddr + 4)
 #define IPR (intc_baseaddr + 6)
 
-static void h8300h_disable_irq(struct irq_data *data)
+static void h8300h_mask(struct irq_data *data)
 {
 	int bit;
-	int irq = data->irq - 12;
+	int irq = data->irq;
+	void __iomem *intc_baseaddr;
 
-	bit = ipr_bit[irq];
-	if (bit >= 0) {
-		if (bit < 8)
-			ctrl_bclr(bit & 7, IPR);
-		else
-			ctrl_bclr(bit & 7, (IPR+1));
-	}
-	if (irq <= 5)
-		ctrl_bclr(irq, IER);
+	intc_baseaddr = data->domain->host_data;
+	if (irq < INTIRQ)
+		ctrl_bclr(irq - EXTIRQ, IER);
+	bit = ipr_bit[irq - EXTIRQ];
+	if (bit >= 0)
+		ctrl_bclr(bit & 7, IPR + bit / 8);
 }
 
-static void h8300h_enable_irq(struct irq_data *data)
+static void h8300h_unmask(struct irq_data *data)
 {
 	int bit;
-	int irq = data->irq - 12;
+	int irq = data->irq;
+	void __iomem *intc_baseaddr;
 
-	bit = ipr_bit[irq];
-	if (bit >= 0) {
-		if (bit < 8)
-			ctrl_bset(bit & 7, IPR);
-		else
-			ctrl_bset(bit & 7, (IPR+1));
+	intc_baseaddr = data->domain->host_data;
+	if (irq < INTIRQ) {
+		ctrl_bclr(irq - EXTIRQ, ISR);
+		ctrl_bset(irq - EXTIRQ, IER);
 	}
-	if (irq <= 5)
-		ctrl_bset(irq, IER);
 }
 
-static void h8300h_ack_irq(struct irq_data *data)
+static void h8300h_eoi(struct irq_data *data)
+{
+	int bit;
+	int irq = data->irq;
+	void __iomem *intc_baseaddr;
+
+	intc_baseaddr = data->domain->host_data;
+	if (irq < INTIRQ) {
+		bit = irq - EXTIRQ;
+		ctrl_bclr(bit, ISR);
+	}
+}
+
+static int h8300h_set_type(struct irq_data *data, unsigned int type)
 {
 	int irq = data->irq;
+	void __iomem *intc_baseaddr;
 
-	if (irq >= 12 && irq <=17) {
-		irq -= 12;
-		ctrl_bclr(irq, ISR);
+	intc_baseaddr = data->domain->host_data;
+	if (irq < INTIRQ) {
+		switch (type) {
+		case IRQ_TYPE_EDGE_FALLING:
+			ctrl_bclr(irq - EXTIRQ, ISCR);
+			return 0;
+		case IRQ_TYPE_LEVEL_LOW:
+			ctrl_bset(irq - EXTIRQ, ISCR);
+			return 0;
+		}
 	}
+	return -EINVAL;
+
 }
 
-
-struct irq_chip h8300h_irq_chip = {
+static struct irq_chip h8300h_irq_chip = {
 	.name		= "H8/300H-INTC",
-	.irq_enable	= h8300h_enable_irq,
-	.irq_disable	= h8300h_disable_irq,
-	.irq_ack	= h8300h_ack_irq,
+	.irq_unmask	= h8300h_unmask,
+	.irq_mask	= h8300h_mask,
+	.irq_disable	= h8300h_mask,
+	.irq_eoi	= h8300h_eoi,
+	.irq_set_type	= h8300h_set_type,
 };
 
-static int irq_map(struct irq_domain *h, unsigned int virq,
+static int irq_map(struct irq_domain *d, unsigned int virq,
 		   irq_hw_number_t hw_irq_num)
 {
-       irq_set_chip_and_handler(virq, &h8300h_irq_chip, handle_simple_irq);
+	irq_set_chip_and_handler(virq, &h8300h_irq_chip,
+				 handle_simple_irq);
 
-       return 0;
+	return 0;
 }
 
 static const struct irq_domain_ops irq_ops = {
@@ -96,21 +119,19 @@ static int __init h8300h_intc_of_init(struct device_node *intc,
 				      struct device_node *parent)
 {
 	struct irq_domain *domain;
-	u8 iscr;
+	void __iomem *intc_baseaddr;
 
 	intc_baseaddr = of_iomap(intc, 0);
 	BUG_ON(!intc_baseaddr);
 
 	/* All interrupt priority low */
-	writeb(0x00, IPR + 0);
-	writeb(0x00, IPR + 1);
-	/* Enable all external interrupt */
-	writeb(0x3f, IER);
-	if (of_property_read_u8(intc, "renesas,iscr", &iscr))
-		writeb(iscr, ISCR);
-	domain = irq_domain_add_linear(intc, NR_IRQS, &irq_ops, NULL);
+	iowrite8(0x00, IPR + 0);
+	iowrite8(0x00, IPR + 1);
+
+	domain = irq_domain_add_linear(intc, NR_IRQS, &irq_ops, intc_baseaddr);
 	BUG_ON(!domain);
 	irq_set_default_host(domain);
+	irq_domain_associate_many(domain, 0, 0, NR_IRQS);
 	return 0;
 }
 

@@ -386,6 +386,12 @@ config PINCTRL_OCELOT
 
 source "drivers/pinctrl/actions/Kconfig"
 source "drivers/pinctrl/aspeed/Kconfig"
+
+config PINCTRL_H8300
+	bool "Pinctrl driver for Renesas H8/300"
+	depends on H8300
+	select PINMUX
+
 source "drivers/pinctrl/bcm/Kconfig"
 source "drivers/pinctrl/berlin/Kconfig"
 source "drivers/pinctrl/freescale/Kconfig"

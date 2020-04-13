@@ -29,7 +29,7 @@ static unsigned long pll_recalc_rate(struct clk_hw *hw,
 		unsigned long parent_rate)
 {
 	struct pll_clock *pll_clock = to_pll_clock(hw);
-	int mul = 1 << (readb(pll_clock->pllcr) & 3);
+	int mul = 1 << (ioread8(pll_clock->pllcr) & 3);
 
 	return parent_rate * mul;
 }
@@ -66,10 +66,10 @@ static int pll_set_rate(struct clk_hw *hw, unsigned long rate,
 
 	pll = ((rate / parent_rate) / 2) & 0x03;
 	spin_lock_irqsave(&clklock, flags);
-	val = readb(pll_clock->sckcr);
+	val = ioread8(pll_clock->sckcr);
 	val |= 0x08;
 	writeb(val, pll_clock->sckcr);
-	val = readb(pll_clock->pllcr);
+	val = ioread8(pll_clock->pllcr);
 	val &= ~0x03;
 	val |= pll;
 	writeb(val, pll_clock->pllcr);

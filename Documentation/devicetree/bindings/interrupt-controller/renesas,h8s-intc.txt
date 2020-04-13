@@ -6,7 +6,7 @@ Required properties:
 - #interrupt-cells: has to be <2>: an interrupt index and flags, as defined in
   interrupts.txt in this directory
 - regs: Base address of interrupt controller registers.
-
+- renesas,itsr: ITSR register setting value.
 Optional properties:
 
 - any properties, listed in interrupts.txt, and any standard resource allocation
@@ -19,4 +19,5 @@ Example:
 		#interrupt-cells = <2>;
 		interrupt-controller;
 		reg = <0xfffe00 24>;
+		renesas,itsr = <0xff3f>;
 	};

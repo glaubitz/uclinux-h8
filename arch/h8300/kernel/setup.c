@@ -46,23 +46,17 @@
 unsigned long memory_start;
 unsigned long memory_end;
 EXPORT_SYMBOL(memory_end);
-static unsigned long freq;
+static unsigned int freq;
 extern char __dtb_start[];
 
 #ifdef CONFIG_VT
 struct screen_info screen_info;
 #endif
 
-char __initdata command_line[COMMAND_LINE_SIZE];
-
-void sim_console_register(void);
-
-void __init h8300_fdt_init(void *fdt, char *bootargs)
+void __init h8300_fdt_init(void *fdt)
 {
 	if (!fdt)
 		fdt = __dtb_start;
-	else
-		strcpy(command_line, bootargs);
 
 	early_init_dt_scan(fdt);
 	memblock_allow_resize();
@@ -107,8 +101,6 @@ void __init setup_arch(char **cmdline_p)
 	pr_notice("\r\n\nuClinux " CPU "\n");
 	pr_notice("Flat model support (C) 1998,1999 Kenneth Albanowski, D. Jeff Dionne\n");
 
-	if (*command_line)
-		strcpy(boot_command_line, command_line);
 	*cmdline_p = boot_command_line;
 
 	parse_early_param();
@@ -132,11 +124,11 @@ static int show_cpuinfo(struct seq_file *m, void *v)
 	cpu = CPU;
 
 	seq_printf(m,  "CPU:\t\t%s\n"
-		   "Clock:\t\t%lu.%1luMHz\n"
+		   "Clock:\t\t%u.%uMHz\n"
 		   "BogoMips:\t%lu.%02lu\n"
 		   "Calibration:\t%lu loops\n",
 		   cpu,
-		   freq/1000, freq%1000,
+		   freq/1000000, freq%1000000,
 		   (loops_per_jiffy*HZ)/500000,
 		   ((loops_per_jiffy*HZ)/5000)%100,
 		   (loops_per_jiffy*HZ));
@@ -171,14 +163,14 @@ const struct seq_operations cpuinfo_op = {
 #define get_wait(base, addr) ({		\
 	int baddr;			\
 	baddr = ((addr) / 0x200000 * 2);			     \
-	w *= (readw((base) + 2) & (3 << baddr)) + 1;		     \
+	w *= (ioread16be((base) + 4) & (3 << baddr)) + 1;	     \
 	})
 #endif
 #if defined(CONFIG_CPU_H8S)
 #define get_wait(base, addr) ({		\
 	int baddr;			\
 	baddr = ((addr) / 0x200000 * 16);			     \
-	w *= (readl((base) + 2) & (7 << baddr)) + 1;	\
+	w *= (ioread32be((base) + 4) & (7 << baddr)) + 1;	\
 	})
 #endif
 
@@ -192,8 +184,8 @@ static __init int access_timing(void)
 
 	bsc = of_find_compatible_node(NULL, NULL, "renesas,h8300-bsc");
 	base = of_iomap(bsc, 0);
-	w = (readb(base + 0) & bit)?2:1;
-	if (readb(base + 1) & bit)
+	w = (ioread8(base + 2) & bit) ? 2 : 1;
+	if (ioread8(base + 3) & bit)
 		w *= get_wait(base, addr);
 	else
 		w *= 2;
@@ -203,10 +195,9 @@ static __init int access_timing(void)
 void __init calibrate_delay(void)
 {
 	struct device_node *cpu;
-	int freq;
 
 	cpu = of_find_compatible_node(NULL, NULL, "renesas,h8300");
-	of_property_read_s32(cpu, "clock-frequency", &freq);
+	of_property_read_u32(cpu, "clock-frequency", &freq);
 	loops_per_jiffy = freq / HZ / (access_timing() * 2);
 	pr_cont("%lu.%02lu BogoMIPS (lpj=%lu)\n",
 		loops_per_jiffy / (500000 / HZ),

@@ -13,6 +13,15 @@
 #include <asm/traps.h>
 
 #ifdef CONFIG_RAMKERNEL
+#define JMP_OP 0x5a000000
+#define JSR_OP 0x5e000000
+#define VECTOR(address) ((JMP_OP)|((unsigned long)address))
+#define REDIRECT(address) ((JSR_OP)|((unsigned long)address))
+#define CPU_VECTOR ((unsigned long *)0x000000)
+#define ADDR_MASK (0xffffff)
+
+extern unsigned long *_interrupt_redirect_table;
+
 typedef void (*h8300_vector)(void);
 
 static const h8300_vector __initconst trap_table[] = {
@@ -31,17 +40,14 @@ static unsigned long __init *get_vector_address(void)
 	unsigned long base, tmp;
 	int vec_no;
 
-	base = rom_vector[EXT_IRQ0] & ADDR_MASK;
+	base = (rom_vector[2] & ADDR_MASK) - (2 * 4);
 
 	/* check romvector format */
-	for (vec_no = EXT_IRQ0 + 1; vec_no <= EXT_IRQ0+EXT_IRQS; vec_no++) {
-		if ((base+(vec_no - EXT_IRQ0)*4) !=
+	for (vec_no = 2; vec_no <= 15; vec_no++) {
+		if ((base + vec_no * 4) !=
 		    (rom_vector[vec_no] & ADDR_MASK))
 			return NULL;
 	}
-
-	/* ramvector base address */
-	base -= EXT_IRQ0*4;
 
 	/* writerble? */
 	tmp = ~(*(volatile unsigned long *)base);

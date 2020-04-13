@@ -52,6 +52,7 @@ static const char version2[] =
 #include <linux/etherdevice.h>
 #include <linux/jiffies.h>
 #include <linux/platform_device.h>
+#include <linux/of.h>
 
 #include <asm/io.h>
 
@@ -72,6 +73,7 @@ static int io[MAX_NE_CARDS];
 static int irq[MAX_NE_CARDS];
 static int bad[MAX_NE_CARDS];
 static u32 ne_msg_enable;
+static unsigned int of_dcr_val;
 
 #ifdef MODULE
 module_param_hw_array(io, int, ioport, NULL, 0);
@@ -168,7 +170,7 @@ bad_clone_list[] __initdata = {
 #  define DCR_VAL 0x48		/* 8-bit mode */
 #elif defined(CONFIG_ATARI)	/* 8-bit mode on Atari, normal on Q40 */
 #  define DCR_VAL (MACH_IS_ATARI ? 0x48 : 0x49)
-#elif defined(CONFIG_OF)
+#elif defined(CONFIG_OF_NET)
 #  define DCR_VAL ei_local->dcr
 #else
 #  define DCR_VAL 0x49
@@ -303,9 +305,10 @@ static int __init ne_probe1(struct net_device *dev, unsigned long ioaddr)
 	struct ei_device *ei_local = netdev_priv(dev);
 
 #if !defined(CONFIG_OF)
-	if (!request_region(ioaddr, NE_IO_EXTENT, DRV_NAME))
-		return -EBUSY;
-#endif
+	if (!request_region(ioaddr, NE_IO_EXTENT, DRV_NAME) &&
+	    !request_mem_region(ioaddr, NE_IO_EXTENT, DRV_NAME))
+			return -EBUSY;
+
 	reg0 = inb_p(ioaddr);
 	if (reg0 == 0xFF) {
 		ret = -ENODEV;
@@ -794,6 +797,10 @@ static int __init ne_drv_probe(struct platform_device *pdev)
 	dev = alloc_eip_netdev();
 	if (!dev)
 		return -ENOMEM;
+
+	if (dev_of_node(&pdev->dev))
+		of_property_read_u32(dev_of_node(&pdev->dev),
+				     "national,dcr", &of_dcr_val);
 
 	/* ne.c doesn't populate resources in platform_device, but
 	 * rbtx4927_ne_init and rbtx4938_ne_init do register devices

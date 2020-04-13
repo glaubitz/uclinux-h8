@@ -27,6 +27,9 @@ config H8300
 	select HAVE_ARCH_HASH
 	select CPU_NO_EFFICIENT_FFS
 	select UACCESS_MEMCPY
+	select ARCH_REQUIRE_GPIOLIB
+	select PINCTRL
+	select PINCTRL_H8300
 
 config CPU_BIG_ENDIAN
 	def_bool y

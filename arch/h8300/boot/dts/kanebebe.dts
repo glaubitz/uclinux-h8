@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /dts-v1/;
 / {
 	model = "NissinTech KaneBebe";
@@ -7,12 +8,18 @@
 	interrupt-parent = <&h8intc>;
 
 	chosen {
+		bootargs = "earlyprintk=sh-sci.1,38400";
 		stdout-path = &sci1;
 	};
 	aliases {
 		serial0 = &sci0;
 		serial1 = &sci1;
 		ethernet0 = &ne2k;
+		gpio0 = &gpio7;
+		gpio1 = &gpio8;
+		gpio2 = &gpio9;
+		gpio3 = &gpioA;
+		gpio4 = &gpioB;
 	};
 
 	xclk: oscillator {
@@ -36,6 +43,31 @@
 		clock-mult = <1>;
 	};
 
+	clocks {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+		xclk: oscillator {
+			#clock-cells = <0>;
+			compatible = "fixed-clock";
+			clock-frequency = <25000000>;
+			clock-output-names = "xtal";
+		};
+		core_clk: core_clk {
+			compatible = "renesas,h8300-div-clock";
+			clocks = <&xclk>;
+			#clock-cells = <0>;
+			reg = <0xfee01b 2>;
+			renesas,width = <2>;
+		};
+		fclk: fclk {
+			compatible = "fixed-factor-clock";
+			clocks = <&core_clk>;
+			#clock-cells = <0>;
+			clock-div = <1>;
+			clock-mult = <1>;
+		};
+	};
 	memory@400000 {
 		device_type = "memory";
 		reg = <0x400000 0x400000>;
@@ -80,12 +112,84 @@
 		clock-names = "fck";
 	};
 
+	pinctrl@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "renesas,h8300-pinctrl", "simple-bus";
+		ranges;
+		gpio7: gpio@ffffd6 {
+			compatible = "renesas,h83069-gpio", "renesas,h8300-gpio";
+			reg = <0xffffd6 1>, <0xfee006 1>;
+			renesas,direction = <0x00>;
+			#gpio-cells = <2>;
+			#gpio-lines = <8>;
+			gpio-controller;
+		};
+		gpio8: gpio@ffffd7 {
+			compatible = "renesas,h83069-gpio", "renesas,h8300-gpio";
+			reg = <0xffffd7 1>, <0xfee007 1>;
+			renesas,direction = <0x0e>;
+			#gpio-cells = <2>;
+			#gpio-lines = <5>;
+			gpio-controller;
+			#interrupt-cells = <1>;
+			#address-cells = <0>;
+			interrupt-map-mask=<0xff>;
+			interrupt-map=<0 &h8intc 12 0>, <1 &h8intc 13 0>,
+			              <2 &h8intc 14 0>, <3 &h8intc 15 0>;
+		};
+		gpio9: gpio@ffffd8 {
+			compatible = "renesas,h83069-gpio", "renesas,h8300-gpio";
+			reg = <0xffffd8 1>, <0xfee008 1>;
+			renesas,direction = <0x00>;
+			#gpio-cells = <2>;
+			#gpio-lines = <6>;
+			gpio-controller;
+			#interrupt-cells = <1>;
+			#address-cells = <0>;
+			interrupt-map-mask=<0xff>;
+			interrupt-map=<4 &h8intc 16 0>, <5 &h8intc 17 0>;
+		};
+		gpioA: gpio@ffffd9 {
+			compatible = "renesas,h83069-gpio", "renesas,h8300-gpio";
+			reg = <0xffffd9 1>, <0xfee009 1>;
+			renesas,direction = <0x00>;
+			#gpio-cells = <2>;
+			#gpio-lines = <8>;
+			gpio-controller;
+		};
+		gpioB: gpio@ffffda {
+			compatible = "renesas,h83069-gpio", "renesas,h8300-gpio";
+			reg = <0xffffda 1>, <0xfee00a 1>;
+			renesas,direction = <0x00>;
+			#gpio-cells = <2>;
+			#gpio-lines = <8>;
+			gpio-controller;
+		};
+		sci0 {
+			pinctrl_sci0_tx: sci0_tx {
+				renesas,pins = <&gpio9 0>;
+			};
+			pinctrl_sci0_rx: sci0_rx {
+				renesas,pins = <&gpio9 2>;
+			};
+		};
+		sci1 {
+			pinctrl_sci1_tx: sci1_tx {
+				renesas,pins = <&gpio9 1>;
+			};
+			pinctrl_sci1_rx: sci1_rx {
+				renesas,pins = <&gpio9 3>;
+			};
+		};
+	};
 	sci0: serial@ffffb0 {
 		compatible = "renesas,sci";
 		reg = <0xffffb0 8>;
 		interrupts = <52 0>, <53 0>, <54 0>, <55 0>;
 		clocks = <&fck>;
 		clock-names = "fck";
+		pinctrl-0 = <&pinctrl_sci0_tx &pinctrl_sci0_rx>;
 	};
 
 	sci1: serial@ffffb8 {
@@ -94,11 +198,13 @@
 		interrupts = <56 0>, <57 0>, <58 0>, <59 0>;
 		clocks = <&fck>;
 		clock-names = "fck";
+		pinctrl-0 = <&pinctrl_sci1_tx &pinctrl_sci1_rx>;
 	};
 	ne2k: ethernet@200000 {
 		compatible = "realtek,rtl8019as", "natsemi,ne2000";
 		reg = <0x200000 32>;
-		interrupts = <17 0>;
+		interrupt-parent = <&gpio9>;
+		interrupts = <17 IRQ_TYE_EDGE_FALLING>;
 		natsemi,dcr = <0x48>;
 	};
 };

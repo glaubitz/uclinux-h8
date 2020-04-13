@@ -48,12 +48,16 @@ _start:
 	adds	#4,er5
 	dec.l	#1,er4
 	bne	1b
+	sub.l	er0,er0
+	jsr	@h8300_fdt_init
 #else
+	sub.l	er0,er0
+	jsr	@h8300_fdt_init
 	/* get cmdline from gdb */
 	jsr	@0xcc
 	;; er0 - argc
 	;; er1 - argv
-	mov.l	#command_line,er3
+	mov.l	#boot_command_line,er3
 	adds	#4,er1
 	dec.l	#1,er0
 	beq	4f
@@ -76,8 +80,6 @@ _start:
 	mov.b	r4l,@er3
 4:
 #endif
-	sub.l	er0,er0
-	jsr	@h8300_fdt_init
 	/* linux kernel start */
 #if defined(CONFIG_CPU_H8300H)
 	ldc	#0xd0,ccr	/* running kernel */

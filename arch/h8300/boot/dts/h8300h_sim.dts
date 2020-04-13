@@ -13,29 +13,39 @@
 	aliases {
 		serial0 = &sci0;
 		serial1 = &sci1;
+		gpio0 = &gpio7;
+		gpio1 = &gpio8;
+		gpio2 = &gpio9;
+		gpio3 = &gpioA;
+		gpio4 = &gpioB;
 	};
 
-	xclk: oscillator {
-		#clock-cells = <0>;
-		compatible = "fixed-clock";
-		clock-frequency = <20000000>;
-		clock-output-names = "xtal";
-	};
-	core_clk: core_clk {
-		compatible = "renesas,h8300-div-clock";
-		clocks = <&xclk>;
-		#clock-cells = <0>;
-		reg = <0xfee01b 2>;
-		renesas,width = <2>;
-	};
-	fclk: fclk {
-		compatible = "fixed-factor-clock";
-		clocks = <&core_clk>;
-		#clock-cells = <0>;
-		clock-div = <1>;
-		clock-mult = <1>;
-	};
 
+	clocks {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+		xclk: oscillator {
+			#clock-cells = <0>;
+			compatible = "fixed-clock";
+			clock-frequency = <20000000>;
+			clock-output-names = "xtal";
+		};
+		core_clk: core_clk {
+			compatible = "renesas,h8300-div-clock";
+			clocks = <&xclk>;
+			#clock-cells = <0>;
+			reg = <0xfee01b 2>;
+			renesas,width = <2>;
+		};
+		fclk: fclk {
+			compatible = "fixed-factor-clock";
+			clocks = <&core_clk>;
+			#clock-cells = <0>;
+			clock-div = <1>;
+			clock-mult = <1>;
+		};
+	};
 	memory@400000 {
 		device_type = "memory";
 		reg = <0x400000 0x400000>;
@@ -53,10 +63,10 @@
 	h8intc: interrupt-controller@fee012 {
 		compatible = "renesas,h8300h-intc", "renesas,h8300-intc";
 		#interrupt-cells = <2>;
+		#address-cells = <1>;
 		interrupt-controller;
 		reg = <0xfee012 7>;
 	};
-
 	bsc: memory-controller@fee01e {
 		compatible = "renesas,h8300h-bsc", "renesas,h8300-bsc";
 		reg = <0xfee01e 8>;
@@ -79,12 +89,84 @@
 		clock-names = "fck";
 	};
 
+	pinctrl@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "renesas,h8300-pinctrl", "simple-bus";
+		ranges;
+		gpio7: gpio@ffffd6 {
+			compatible = "renesas,h83069-gpio", "renesas,h8300-gpio";
+			reg = <0xffffd6 1>, <0xfee006 1>;
+			renesas,direction = <0x00>;
+			#gpio-cells = <2>;
+			#gpio-lines = <8>;
+			gpio-controller;
+		};
+		gpio8: gpio@ffffd7 {
+			compatible = "renesas,h83069-gpio", "renesas,h8300-gpio";
+			reg = <0xffffd7 1>, <0xfee007 1>;
+			renesas,direction = <0x0e>;
+			#gpio-cells = <2>;
+			#gpio-lines = <5>;
+			gpio-controller;
+			#interrupt-cells = <2>;
+			#address-cells = <0>;
+			interrupt-map-mask=<0 0 0>;
+			interrupt-map=<0 12 &h8intc>, <1 13 &h8intc>,
+			              <2 14 &h8intc>, <3 15 &h8intc>;
+		};
+		gpio9: gpio@ffffd8 {
+			compatible = "renesas,h83069-gpio", "renesas,h8300-gpio";
+			reg = <0xffffd8 1>, <0xfee008 1>;
+			renesas,direction = <0x00>;
+			#gpio-cells = <2>;
+			#gpio-lines = <6>;
+			gpio-controller;
+			#interrupt-cells = <2>;
+			#address-cells = <0>;
+			interrupt-map-mask=<0 0 0>;
+			interrupt-map=<4 16 &h8intc>, <5 17 &h8intc>;
+		};
+		gpioA: gpio@ffffd9 {
+			compatible = "renesas,h83069-gpio", "renesas,h8300-gpio";
+			reg = <0xffffd9 1>, <0xfee009 1>;
+			renesas,direction = <0x00>;
+			#gpio-cells = <2>;
+			#gpio-lines = <8>;
+			gpio-controller;
+		};
+		gpioB: gpio@ffffda {
+			compatible = "renesas,h83069-gpio", "renesas,h8300-gpio";
+			reg = <0xffffda 1>, <0xfee00a 1>;
+			renesas,direction = <0x00>;
+			#gpio-cells = <2>;
+			#gpio-lines = <8>;
+			gpio-controller;
+		};
+		sci0 {
+			pinctrl_sci0_tx: sci0_tx {
+				renesas,pins = <&gpio9 0>;
+			};
+			pinctrl_sci0_rx: sci0_rx {
+				renesas,pins = <&gpio9 2>;
+			};
+		};
+		sci1 {
+			pinctrl_sci1_tx: sci1_tx {
+				renesas,pins = <&gpio9 1>;
+			};
+			pinctrl_sci1_rx: sci1_rx {
+				renesas,pins = <&gpio9 3>;
+			};
+		};
+	};
 	sci0: serial@ffffb0 {
 		compatible = "renesas,sci";
 		reg = <0xffffb0 8>;
 		interrupts = <52 0>, <53 0>, <54 0>, <55 0>;
 		clocks = <&fclk>;
 		clock-names = "fck";
+		pinctrl-0 = <&pinctrl_sci0_tx &pinctrl_sci0_rx>;
 	};
 
 	sci1: serial@ffffb8 {
@@ -93,5 +175,6 @@
 		interrupts = <56 0>, <57 0>, <58 0>, <59 0>;
 		clocks = <&fclk>;
 		clock-names = "fck";
+		pinctrl-0 = <&pinctrl_sci1_tx &pinctrl_sci1_rx>;
 	};
 };

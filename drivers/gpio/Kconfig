@@ -260,6 +260,13 @@ config GPIO_HLWD
 
 	  If unsure, say N.
 
+config GPIO_H8300
+        tristate "Renesas H8/300 GPIO support"
+	depends	on OF && H8300
+	select GPIO_GENERIC
+	help
+	  Say yes here to support GPIO on Renesas H8/300
+
 config GPIO_ICH
 	tristate "Intel ICH GPIO"
 	depends on PCI && X86

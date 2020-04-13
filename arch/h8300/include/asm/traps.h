@@ -17,15 +17,6 @@ extern void _trace_break(void);
 extern void _nmi(void);
 extern void _interrupt_entry(void);
 
-extern unsigned long *_interrupt_redirect_table;
-
-#define JMP_OP 0x5a000000
-#define JSR_OP 0x5e000000
-#define VECTOR(address) ((JMP_OP)|((unsigned long)address))
-#define REDIRECT(address) ((JSR_OP)|((unsigned long)address))
-#define CPU_VECTOR ((unsigned long *)0x000000)
-#define ADDR_MASK (0xffffff)
-
 #define TRACE_VEC 5
 
 #define TRAP0_VEC 8

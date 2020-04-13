@@ -11,8 +11,18 @@
 #include <linux/of_irq.h>
 #include <asm/io.h>
 
-static void *intc_baseaddr;
-#define IPRA (intc_baseaddr)
+static void __iomem *pri_baseaddr;
+static void __iomem *ctl_baseaddr;
+
+#define IPRA (pri_baseaddr)
+#define IPRE (pri_baseaddr + 8)
+#define ISCRH (pri_baseaddr + 26)
+#define ISCRL (pri_baseaddr + 28)
+
+#define IER  (ctl_baseaddr + 1)
+#define ISR  (ctl_baseaddr + 3)
+
+#define INTIRQ 32
 
 static const unsigned char ipr_table[] = {
 	0x03, 0x02, 0x01, 0x00, 0x13, 0x12, 0x11, 0x10, /* 16 - 23 */
@@ -31,7 +41,9 @@ static const unsigned char ipr_table[] = {
 	0xa0, 0xa0, 0xa0, 0xa0, 0xa0, 0xa0, 0xa0, 0xa0, /* 120 - 127 */
 };
 
-static void h8s_disable_irq(struct irq_data *data)
+#define ctrl_bclr16(b, a) writew(readw(a) & ~(1 << (b)), a)
+
+static void h8s_mask(struct irq_data *data)
 {
 	int pos;
 	void __iomem *addr;
@@ -45,7 +57,7 @@ static void h8s_disable_irq(struct irq_data *data)
 	writew(pri, addr);
 }
 
-static void h8s_enable_irq(struct irq_data *data)
+static void h8s_unmask(struct irq_data *data)
 {
 	int pos;
 	void __iomem *addr;
@@ -60,18 +72,62 @@ static void h8s_enable_irq(struct irq_data *data)
 	writew(pri, addr);
 }
 
+static void h8s_eoi(struct irq_data *data)
+{
+	int irq = data->irq;
+
+	if (irq < INTIRQ)
+		ctrl_bclr16(irq - 16, ISR);
+}
+
+static int h8s_set_type(struct irq_data *data, unsigned int type)
+{
+	int irq = data->irq;
+	void __iomem *iscr;
+	int bit;
+	u16 iscr_val;
+	if (irq < INTIRQ) {
+		irq -= 16;
+		if (irq < 8) {
+			iscr = ISCRL;
+			bit = irq * 2;
+		} else {
+			iscr = ISCRH;
+			bit = (irq - 8) * 2;
+		}
+		iscr_val = readw(iscr) & ~(3 << bit);
+		switch (type) {
+		case IRQ_TYPE_EDGE_FALLING:
+			writew(iscr_val | (1 << bit), iscr);
+			return 0;
+		case IRQ_TYPE_EDGE_RISING:
+			writew(iscr_val | (2 << bit), iscr);
+			return 0;
+		case IRQ_TYPE_EDGE_BOTH:
+			writew(iscr_val | (3 << bit), iscr);
+			return 0;
+		case IRQ_TYPE_LEVEL_LOW:
+			writew(iscr_val, iscr);
+			return 0;
+		}
+	}
+	return -EINVAL;
+}
+
 struct irq_chip h8s_irq_chip = {
 	.name		= "H8S-INTC",
-	.irq_enable	= h8s_enable_irq,
-	.irq_disable	= h8s_disable_irq,
+	.irq_unmask	= h8s_unmask,
+	.irq_mask	= h8s_mask,
+	.irq_disable	= h8s_mask,
+	.irq_eoi	= h8s_eoi,
+	.irq_set_type	= h8s_set_type,
 };
 
-static __init int irq_map(struct irq_domain *h, unsigned int virq,
+static __init int irq_map(struct irq_domain *d, unsigned int virq,
 			  irq_hw_number_t hw_irq_num)
 {
-       irq_set_chip_and_handler(virq, &h8s_irq_chip, handle_simple_irq);
-
-       return 0;
+	irq_set_chip_and_handler(virq, &h8s_irq_chip, handle_fasteoi_irq);
+	return 0;
 }
 
 static const struct irq_domain_ops irq_ops = {
@@ -84,18 +140,25 @@ static int __init h8s_intc_of_init(struct device_node *intc,
 {
 	struct irq_domain *domain;
 	int n;
+	u16 itsr;
 
-	intc_baseaddr = of_iomap(intc, 0);
-	BUG_ON(!intc_baseaddr);
+	pri_baseaddr = of_iomap(intc, 0);
+	ctl_baseaddr = of_iomap(intc, 1);
+	BUG_ON(!pri_baseaddr || !ctl_baseaddr);
 
-	/* All interrupt priority is 0 (disable) */
-	/* IPRA to IPRK */
+	/* Internal interrupt priority is 0 (disable) */
 	for (n = 0; n <= 'k' - 'a'; n++)
 		writew(0x0000, IPRA + (n * 2));
 
+	readw(ISR);
+	writew(0x0000, ISR);
+	writew(0xffff, IER);
 	domain = irq_domain_add_linear(intc, NR_IRQS, &irq_ops, NULL);
 	BUG_ON(!domain);
 	irq_set_default_host(domain);
+	irq_domain_associate_many(domain, 0, 0, NR_IRQS);
+	if (of_property_read_u16(intc, "renesas,itsr", &itsr))
+		writew(itsr, pri_baseaddr + 0x16);
 	return 0;
 }
 
