@@ -97,6 +97,9 @@ struct ei_device {
 #ifdef AX88796_PLATFORM
 	unsigned char rxcr_base;	/* default value for RXCR */
 #endif
+#if defined(CONFIG_OF)
+	u8 dcr;				/* DCR value */
+#endif
 };
 
 /* The maximum number of 8390 interrupt service routines called per IRQ. */

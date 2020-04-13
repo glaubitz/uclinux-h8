@@ -168,6 +168,8 @@ bad_clone_list[] __initdata = {
 #  define DCR_VAL 0x48		/* 8-bit mode */
 #elif defined(CONFIG_ATARI)	/* 8-bit mode on Atari, normal on Q40 */
 #  define DCR_VAL (MACH_IS_ATARI ? 0x48 : 0x49)
+#elif defined(CONFIG_OF)
+#  define DCR_VAL ei_local->dcr
 #else
 #  define DCR_VAL 0x49
 #endif
@@ -300,9 +302,10 @@ static int __init ne_probe1(struct net_device *dev, unsigned long ioaddr)
 	static unsigned version_printed;
 	struct ei_device *ei_local = netdev_priv(dev);
 
+#if !defined(CONFIG_OF)
 	if (!request_region(ioaddr, NE_IO_EXTENT, DRV_NAME))
 		return -EBUSY;
-
+#endif
 	reg0 = inb_p(ioaddr);
 	if (reg0 == 0xFF) {
 		ret = -ENODEV;
@@ -786,6 +789,7 @@ static int __init ne_drv_probe(struct platform_device *pdev)
 	struct net_device *dev;
 	int err, this_dev = pdev->id;
 	struct resource *res;
+	struct device_node *np = pdev->dev.of_node;
 
 	dev = alloc_eip_netdev();
 	if (!dev)
@@ -796,9 +800,19 @@ static int __init ne_drv_probe(struct platform_device *pdev)
 	 * with resources.
 	 */
 	res = platform_get_resource(pdev, IORESOURCE_IO, 0);
+	if (!res)
+		res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	if (res) {
 		dev->base_addr = res->start;
 		dev->irq = platform_get_irq(pdev, 0);
+#if defined(CONFIG_OF)
+		if (np) {
+			struct ei_device *ei_local = netdev_priv(dev);
+			int dcr;
+			of_property_read_u32(np, "natsemi,dcr", &dcr);
+			DCR_VAL = dcr;
+		}
+#endif
 	} else {
 		if (this_dev < 0 || this_dev >= MAX_NE_CARDS) {
 			free_netdev(dev);
@@ -897,12 +911,21 @@ static int ne_drv_resume(struct platform_device *pdev)
 #define ne_drv_resume NULL
 #endif
 
+#if defined(CONFIG_OF)
+static const struct of_device_id ne_match_table[] = {
+	{ .compatible = "natsemi,ne2000" },
+	{ }
+};
+MODULE_DEVICE_TABLE(of, ne_match_table);
+#endif
+
 static struct platform_driver ne_driver = {
 	.remove		= ne_drv_remove,
 	.suspend	= ne_drv_suspend,
 	.resume		= ne_drv_resume,
 	.driver		= {
 		.name	= DRV_NAME,
+		.of_match_table = of_match_ptr(ne_match_table),
 	},
 };
 
