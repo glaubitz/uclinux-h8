@@ -154,7 +154,7 @@ static int __init h8300_16timer_init(struct device_node *node)
 	}
 
 	ret = -EINVAL;
-	irq = irq_of_parse_and_map(node, 0);
+	irq = irq_of_parse_and_map(node, 2);
 	if (!irq) {
 		pr_err("failed to get irq for clockevent\n");
 		goto unmap_comm;
