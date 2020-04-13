@@ -24,6 +24,9 @@ static const char ipr_bit[] = {
 
 static void __iomem *intc_baseaddr;
 
+#define ISCR (intc_baseaddr + 2)
+#define IER (intc_baseaddr + 3)
+#define ISR (intc_baseaddr + 4)
 #define IPR (intc_baseaddr + 6)
 
 static void h8300h_disable_irq(struct irq_data *data)
@@ -38,6 +41,8 @@ static void h8300h_disable_irq(struct irq_data *data)
 		else
 			ctrl_bclr(bit & 7, (IPR+1));
 	}
+	if (irq <= 5)
+		ctrl_bclr(irq, IER);
 }
 
 static void h8300h_enable_irq(struct irq_data *data)
@@ -52,12 +57,26 @@ static void h8300h_enable_irq(struct irq_data *data)
 		else
 			ctrl_bset(bit & 7, (IPR+1));
 	}
+	if (irq <= 5)
+		ctrl_bset(irq, IER);
 }
+
+static void h8300h_ack_irq(struct irq_data *data)
+{
+	int irq = data->irq;
+
+	if (irq >= 12 && irq <=17) {
+		irq -= 12;
+		ctrl_bclr(irq, ISR);
+	}
+}
+
 
 struct irq_chip h8300h_irq_chip = {
 	.name		= "H8/300H-INTC",
 	.irq_enable	= h8300h_enable_irq,
 	.irq_disable	= h8300h_disable_irq,
+	.irq_ack	= h8300h_ack_irq,
 };
 
 static int irq_map(struct irq_domain *h, unsigned int virq,
@@ -77,6 +96,7 @@ static int __init h8300h_intc_of_init(struct device_node *intc,
 				      struct device_node *parent)
 {
 	struct irq_domain *domain;
+	u8 iscr;
 
 	intc_baseaddr = of_iomap(intc, 0);
 	BUG_ON(!intc_baseaddr);
@@ -84,7 +104,10 @@ static int __init h8300h_intc_of_init(struct device_node *intc,
 	/* All interrupt priority low */
 	writeb(0x00, IPR + 0);
 	writeb(0x00, IPR + 1);
-
+	/* Enable all external interrupt */
+	writeb(0x3f, IER);
+	if (of_property_read_u8(intc, "renesas,iscr", &iscr))
+		writeb(iscr, ISCR);
 	domain = irq_domain_add_linear(intc, NR_IRQS, &irq_ops, NULL);
 	BUG_ON(!domain);
 	irq_set_default_host(domain);
