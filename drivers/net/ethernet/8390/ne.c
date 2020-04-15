@@ -304,7 +304,6 @@ static int __init ne_probe1(struct net_device *dev, unsigned long ioaddr)
 	static unsigned version_printed;
 	struct ei_device *ei_local = netdev_priv(dev);
 
-#if !defined(CONFIG_OF)
 	if (!request_region(ioaddr, NE_IO_EXTENT, DRV_NAME) &&
 	    !request_mem_region(ioaddr, NE_IO_EXTENT, DRV_NAME))
 			return -EBUSY;

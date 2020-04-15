@@ -53,10 +53,11 @@ static void h8300h_unmask(struct irq_data *data)
 	void __iomem *intc_baseaddr;
 
 	intc_baseaddr = data->domain->host_data;
-	if (irq < INTIRQ) {
-		ctrl_bclr(irq - EXTIRQ, ISR);
+	if (irq < INTIRQ)
 		ctrl_bset(irq - EXTIRQ, IER);
-	}
+	bit = ipr_bit[irq - EXTIRQ];
+	if (bit >= 0)
+		ctrl_bset(bit & 7, IPR + bit / 8);
 }
 
 static void h8300h_eoi(struct irq_data *data)
@@ -81,10 +82,10 @@ static int h8300h_set_type(struct irq_data *data, unsigned int type)
 	if (irq < INTIRQ) {
 		switch (type) {
 		case IRQ_TYPE_EDGE_FALLING:
-			ctrl_bclr(irq - EXTIRQ, ISCR);
+			ctrl_bset(irq - EXTIRQ, ISCR);
 			return 0;
 		case IRQ_TYPE_LEVEL_LOW:
-			ctrl_bset(irq - EXTIRQ, ISCR);
+			ctrl_bclr(irq - EXTIRQ, ISCR);
 			return 0;
 		}
 	}
@@ -127,7 +128,7 @@ static int __init h8300h_intc_of_init(struct device_node *intc,
 	/* All interrupt priority low */
 	iowrite8(0x00, IPR + 0);
 	iowrite8(0x00, IPR + 1);
-
+	iowrite8(0x01, ISCR);
 	domain = irq_domain_add_linear(intc, NR_IRQS, &irq_ops, intc_baseaddr);
 	BUG_ON(!domain);
 	irq_set_default_host(domain);

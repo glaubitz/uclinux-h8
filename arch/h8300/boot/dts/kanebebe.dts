@@ -1,5 +1,8 @@
-<<<<<<< HEAD
+// SPDX-License-Identifier: GPL-2.0
 /dts-v1/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+
 / {
 	model = "NissinTech KaneBebe";
 	compatible = "nissintech,kanebebe";
@@ -22,27 +25,6 @@
 		gpio4 = &gpioB;
 	};
 
-	xclk: oscillator {
-		#clock-cells = <0>;
-		compatible = "fixed-clock";
-		clock-frequency = <25000000>;
-		clock-output-names = "xtal";
-	};
-	core_clk: core_clk {
-		compatible = "renesas,h8300-div-clock";
-		clocks = <&xclk>;
-		#clock-cells = <0>;
-		reg = <0xfee01b 2>;
-		renesas,width = <2>;
-	};
-	fck: fck {
-		compatible = "fixed-factor-clock";
-		clocks = <&core_clk>;
-		#clock-cells = <0>;
-		clock-div = <1>;
-		clock-mult = <1>;
-	};
-
 	clocks {
 		#address-cells = <1>;
 		#size-cells = <1>;
@@ -60,7 +42,7 @@
 			reg = <0xfee01b 2>;
 			renesas,width = <2>;
 		};
-		fclk: fclk {
+		fck: fck {
 			compatible = "fixed-factor-clock";
 			clocks = <&core_clk>;
 			#clock-cells = <0>;
@@ -87,7 +69,6 @@
 		#interrupt-cells = <2>;
 		interrupt-controller;
 		reg = <0xfee012 7>;
-		renesas,iscr = <0x01>;
 	};
 
 	bsc: memory-controller@fee01e {
@@ -132,11 +113,6 @@
 			#gpio-cells = <2>;
 			#gpio-lines = <5>;
 			gpio-controller;
-			#interrupt-cells = <1>;
-			#address-cells = <0>;
-			interrupt-map-mask=<0xff>;
-			interrupt-map=<0 &h8intc 12 0>, <1 &h8intc 13 0>,
-			              <2 &h8intc 14 0>, <3 &h8intc 15 0>;
 		};
 		gpio9: gpio@ffffd8 {
 			compatible = "renesas,h83069-gpio", "renesas,h8300-gpio";
@@ -145,10 +121,6 @@
 			#gpio-cells = <2>;
 			#gpio-lines = <6>;
 			gpio-controller;
-			#interrupt-cells = <1>;
-			#address-cells = <0>;
-			interrupt-map-mask=<0xff>;
-			interrupt-map=<4 &h8intc 16 0>, <5 &h8intc 17 0>;
 		};
 		gpioA: gpio@ffffd9 {
 			compatible = "renesas,h83069-gpio", "renesas,h8300-gpio";
@@ -203,8 +175,7 @@
 	ne2k: ethernet@200000 {
 		compatible = "realtek,rtl8019as", "natsemi,ne2000";
 		reg = <0x200000 32>;
-		interrupt-parent = <&gpio9>;
-		interrupts = <17 IRQ_TYE_EDGE_FALLING>;
+		interrupts = <17 IRQ_TYPE_EDGE_FALLING>;
 		natsemi,dcr = <0x48>;
 	};
 };

@@ -657,13 +657,8 @@ static void sci_clear_SCxSR(struct uart_port *port, unsigned int mask)
 	}
 }
 
-<<<<<<< HEAD
 #if defined(CONFIG_CONSOLE_POLL) || defined(CONFIG_SERIAL_SH_SCI_CONSOLE) || \
     defined(CONFIG_SERIAL_SH_SCI_EARLYCON)
-=======
-#if defined(CONFIG_CONSOLE_POLL) || defined(CONFIG_SERIAL_SH_SCI_CONSOLE) \
-	|| defined(CONFIG_SERIAL_SH_SCI_EARLYCON)
->>>>>>> b395094abff6bbc2c0616177c6231aeaa1367786
 
 #ifdef CONFIG_CONSOLE_POLL
 static int sci_poll_get_char(struct uart_port *port)
@@ -704,13 +699,8 @@ static void sci_poll_put_char(struct uart_port *port, unsigned char c)
 	serial_port_out(port, SCxTDR, c);
 	sci_clear_SCxSR(port, SCxSR_TDxE_CLEAR(port) & ~SCxSR_TEND(port));
 }
-<<<<<<< HEAD
 #endif /* CONFIG_CONSOLE_POLL || CONFIG_SERIAL_SH_SCI_CONSOLE ||
 	  CONFIG_SERIAL_SH_SCI_EARLYCON */
-=======
-#endif /* CONFIG_CONSOLE_POLL || CONFIG_SERIAL_SH_SCI_CONSOLE
-	  || CONFIG_SERIAL_SH_SCI_EARLYCON_*/
->>>>>>> b395094abff6bbc2c0616177c6231aeaa1367786
 
 static void sci_init_pins(struct uart_port *port, unsigned int cflag)
 {
@@ -3006,12 +2996,8 @@ static void sci_cleanup_single(struct sci_port *port)
 	pm_runtime_disable(port->port.dev);
 }
 
-<<<<<<< HEAD
 #if defined(CONFIG_SERIAL_SH_SCI_CONSOLE) || \
     defined(CONFIG_SERIAL_SH_SCI_EARLYCON)
-=======
-#if defined(CONFIG_SERIAL_SH_SCI_CONSOLE) || defined(CONFIG_SERIAL_SH_SCI_EARLYCON)
->>>>>>> b395094abff6bbc2c0616177c6231aeaa1367786
 static void serial_console_putchar(struct uart_port *port, int ch)
 {
 	sci_poll_put_char(port, ch);
@@ -3030,20 +3016,9 @@ static void serial_console_write(struct console *co, const char *s,
 	unsigned long flags;
 	int locked = 1;
 
-<<<<<<< HEAD
 #if defined(SUPPORT_SYSRQ)
 	if (port->sysrq)
 		locked = 0;
-=======
-	local_irq_save(flags);
-#if defined(SUPPORT_SYSRQ)
-	if (port->sysrq)
-		locked = 0;
-	else
-#endif
-	if (oops_in_progress)
-		locked = spin_trylock(&port->lock);
->>>>>>> b395094abff6bbc2c0616177c6231aeaa1367786
 	else
 #endif
 	if (oops_in_progress)
