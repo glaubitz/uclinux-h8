@@ -16,7 +16,6 @@
 	.section	.head.text,"ax"
 startup:
 	mov.l	#CONFIG_INITIAL_STACK,r0
-#if !defined(CONFIG_RX_GDB_SIM)
 #if defined(CONFIG_ROMKERNEL)
 	mov.l	#setup_bsc,r1
 	jsr	r1
@@ -30,45 +29,6 @@ startup:
 	sub	r4,r4
 #else
 	mov	r1,r4
-#endif
-#else
-	/* setup args */
-	sub	r4,r4
-	mov	#12, r5
-	int	#255
-	mov	r1,r2
-	mov	#boot_command_line,r1
-	mov	#13, r5
-	int	#255
-	cmp	#1,r1
-	beq	2f
-	/* r1 - argc */
-	/* r2 -length */
-	/* skip argv[0] */
-	mov	r1,r4
-	mov	r2,r3
-	mov	#boot_command_line,r1
-	mov	#0,r2
-	suntil.b
-	mov	r3,r5
-	mov	r1,r2
-	mov	#boot_command_line,r1
-	smovf
-	mov	#boot_command_line,r1
-	mov	#0,r2
-	sub	#1,r4
-	mov	r5,r3
-1:	
-	suntil.b
-	sub	#1,r1
-	mov.b	#' ',[r1]
-	add	#1,r1
-	sub	#1,r4
-	bne	1b
-	sub	#1,r1
-	mov.b	#0,[r1]
-	mov	#-1,r4
-2:	
 #endif
 	/* clear BSS */
 	mov	#_sbss,r1
