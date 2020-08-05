@@ -1135,16 +1135,18 @@ static void sh_eth_set_rate_rx6xn(struct net_device *ndev)
 }
 
 static struct sh_eth_cpu_data rx6xn_data = {
+	.soft_reset	= sh_eth_soft_reset,
 	.set_duplex	= sh_eth_set_duplex_rx6xn,
 	.set_rate	= sh_eth_set_rate_rx6xn,
 
 	.register_type	= SH_ETH_REG_FAST_SH4,
 
+	.edtrr_trns	= EDTRR_TRNS_ETHER,
 	.ecsr_value	= ECSR_PSRTO | ECSR_LCHNG | ECSR_ICD,
 	.ecsipr_value	= ECSIPR_PSRTOIP | ECSIPR_LCHNGIP | ECSIPR_ICDIP,
 	.eesipr_value	= 0x01ff009f,
 
-	.tx_check	= EESR_FTC | EESR_CND | EESR_DLC | EESR_CD | EESR_RTO,
+	.tx_check	= EESR_FTC | EESR_CND | EESR_DLC | EESR_CD | EESR_TRO,
 	.eesr_err_check	= EESR_TWB | EESR_TABT | EESR_RABT | EESR_RFE |
 			  EESR_RDE | EESR_RFRMER | EESR_TFE | EESR_TDE |
 			  EESR_ECI,
@@ -1154,7 +1156,6 @@ static struct sh_eth_cpu_data rx6xn_data = {
 	.tpauser	= 1,
 	.hw_swap	= 1,
 	.rpadir		= 1,
-	.rpadir_value	= 0x00020000, /* NET_IP_ALIGN assumed to be 2 */
 };
 
 static void sh_eth_set_default_cpu_data(struct sh_eth_cpu_data *cd)
@@ -1700,7 +1701,7 @@ static int sh_eth_rx(struct net_device *ndev, u32 intr_status, int *quota)
 			if (desc_status & RD_RFS10)
 				ndev->stats.rx_over_errors++;
 		} else	if (skb) {
-			dma_addr = edmac_to_cpu(mdp, rxdesc->addr);
+			dma_addr = le32_to_cpu(rxdesc->addr);
 
 			if (!mdp->cd->hw_swap)
 				sh_eth_soft_swap(
@@ -2094,9 +2095,6 @@ static int sh_eth_phy_init(struct net_device *ndev)
 	}
 
 	phy_attached_info(phydev);
-	phy_read_status(phydev);
-	mdp->phydev = phydev;
-	sh_eth_adjust_link(ndev);
 
 	return 0;
 }
@@ -3592,14 +3590,6 @@ static const struct platform_device_id sh_eth_id_table[] = {
 	{ "sh7757-ether", (kernel_ulong_t)&sh7757_data },
 	{ "sh7757-gether", (kernel_ulong_t)&sh7757_data_giga },
 	{ "sh7763-gether", (kernel_ulong_t)&sh7763_data },
-	{ "r7s72100-ether", (kernel_ulong_t)&r7s72100_data },
-	{ "r8a7740-gether", (kernel_ulong_t)&r8a7740_data },
-	{ "r8a777x-ether", (kernel_ulong_t)&r8a777x_data },
-	{ "r8a7790-ether", (kernel_ulong_t)&r8a779x_data },
-	{ "r8a7791-ether", (kernel_ulong_t)&r8a779x_data },
-	{ "r8a7793-ether", (kernel_ulong_t)&r8a779x_data },
-	{ "r8a7794-ether", (kernel_ulong_t)&r8a779x_data },
-	{ "rx6xn-ether", (kernel_ulong_t)&rx6xn_data },
 	{ }
 };
 MODULE_DEVICE_TABLE(platform, sh_eth_id_table);
