@@ -7,7 +7,7 @@
 
 	chosen {
 		bootargs = "earlycon=sci,0x88240 console=ttySC0,38400";
-		stdout-path = <&sci0>;
+		stdout-path = &sci0;
 	};
 	aliases {
 		serial0 = &sci0;
@@ -99,10 +99,10 @@
 		reg = <0x000c0000 0x200>;
 		interrupts = <32 0>;
 		phy-mode = "rmii";
-		phy-handle = <&phy1>;
+		phy-handle = <&phy0>;
 		#address-cells = <1>;
 		#size-cells = <0>;
-		phy1: ethernet-phy@0 {
+		phy0: ethernet-phy@0 {
 		      reg = <0>;
 		      interrupt-parent = <&rxicu>;
 		};
