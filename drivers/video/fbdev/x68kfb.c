@@ -42,9 +42,9 @@ static struct fb_var_screeninfo x68kfb_default = {
 	.xres_virtual =	1024,
 	.yres_virtual =	1024,
 	.bits_per_pixel = 16,
-	.red =		{ 6, 5, 0 },
-      	.green =	{ 11, 5, 0 },
-      	.blue =		{ 1, 5, 0 },
+	.red =		{ 0, 4, 0 },
+	.green =	{ 0, 4, 0 },
+	.blue =		{ 0, 4, 0 },
       	.activate =	FB_ACTIVATE_TEST,
       	.height =	-1,
       	.width =	-1,
@@ -78,15 +78,14 @@ static int x68kfb_pan_display(struct fb_var_screeninfo *var,
 			   struct fb_info *info);
 static int x68kfb_mmap(struct fb_info *info,
 		    struct vm_area_struct *vma);
-static int x68kfb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
-			    u_int transp, struct fb_info *info);
+static int x68kfb_setcmap(struct fb_cmap *cmap, struct fb_info *info);
 static void x68kfb_imageblit(struct fb_info *p, const struct fb_image *image);
 
 static struct fb_ops x68kfb_ops = {
 	.fb_check_var	= x68kfb_check_var,
 	.fb_set_par	= x68kfb_set_par,
 	.fb_pan_display	= x68kfb_pan_display,
-	.fb_setcolreg	= x68kfb_setcolreg,
+	.fb_setcmap	= x68kfb_setcmap,
 	.fb_fillrect	= cfb_fillrect,
 	.fb_copyarea	= cfb_copyarea,
 	.fb_imageblit	= x68kfb_imageblit,
@@ -172,13 +171,13 @@ static int x68kfb_check_var(struct fb_var_screeninfo *var,
 	 * work. This way we let the user know what is acceptable.
 	 */
 	var->red.offset = 0;
-	var->red.length = 1;
+	var->red.length = 4;
 	var->green.offset = 0;
-	var->green.length = 1;
+	var->green.length = 4;
 	var->blue.offset = 0;
-	var->blue.length = 1;
+	var->blue.length = 4;
 	var->transp.offset = 0;
-	var->transp.length = 1;
+	var->transp.length = 0;
 	var->red.msb_right = 0;
 	var->green.msb_right = 0;
 	var->blue.msb_right = 0;
@@ -258,29 +257,22 @@ static int x68kfb_mmap(struct fb_info *info,
 }
 
 #define PSEUDO_PALETTE_SIZE 16
-
-static int x68kfb_setcolreg(u_int regno, u_int red, u_int green, u_int blue,
-			      u_int transp, struct fb_info *info)
+#define palvalue(val, offset) ((val >> 11) << offset)
+static int x68kfb_setcmap(struct fb_cmap *cmap, struct fb_info *info)
 {
-	u16 *pal = info->pseudo_palette;
-	u32 cr = red >> (16 - info->var.red.length);
-	u32 cg = green >> (16 - info->var.green.length);
-	u32 cb = blue >> (16 - info->var.blue.length);
-	u16 value;
+	volatile u16 *pal = info->pseudo_palette;
+	u16 *r, *g, *b;
+	int c;
 
-	if (regno >= PSEUDO_PALETTE_SIZE)
+	if (cmap->len > PSEUDO_PALETTE_SIZE)
 		return -EINVAL;
-
-	value = (cr << info->var.red.offset) |
-		(cg << info->var.green.offset) |
-		(cb << info->var.blue.offset);
-	if (info->var.transp.length > 0) {
-		u32 mask = (1 << info->var.transp.length) - 1;
-		mask <<= info->var.transp.offset;
-		value |= mask;
+	r = cmap->red;
+	g = cmap->green;
+	b = cmap->blue;
+	for (c = 0; c < cmap->len; c++) {
+		*pal++ = palvalue(*r++, 6) |
+			palvalue(*g++, 11) | palvalue(*b++, 1);
 	}
-	pal[regno] = value;
-
 	return 0;
 }
 
@@ -301,7 +293,7 @@ static inline void color_imageblit(const struct fb_image *image,
 	u32 color = 0, val, shift;
 	int i, n, bpp = p->var.bits_per_pixel;
 	u32 null_bits = 32 - bpp;
-	u32 *palette = (u32 *) p->pseudo_palette;
+	u16 *palette = (u16 *) p->pseudo_palette;
 	const u8 *src = image->data;
 	u32 bswapmask = fb_compute_bswapmask(p);
 
@@ -416,8 +408,8 @@ static void x68kfb_imageblit(struct fb_info *p, const struct fb_image *image)
 	if (image->depth == 1) {
 		if (p->fix.visual == FB_VISUAL_TRUECOLOR ||
 		    p->fix.visual == FB_VISUAL_DIRECTCOLOR) {
-			fgcolor = ((u32*)(p->pseudo_palette))[image->fg_color];
-			bgcolor = ((u32*)(p->pseudo_palette))[image->bg_color];
+			fgcolor = ((u16*)(p->pseudo_palette))[image->fg_color];
+			bgcolor = ((u16*)(p->pseudo_palette))[image->bg_color];
 		} else {
 			fgcolor = image->fg_color;
 			bgcolor = image->bg_color;
@@ -484,7 +476,6 @@ static int x68kfb_probe(struct platform_device *dev)
 	x68kfb_fix.smem_start = (unsigned long) videomemory;
 	x68kfb_fix.smem_len = videomemorysize;
 	info->fix = x68kfb_fix;
-	info->pseudo_palette = info->par;
 	info->par = NULL;
 	info->flags = FBINFO_FLAG_DEFAULT;
 	info->pseudo_palette = (void *)0xffe82000;;
