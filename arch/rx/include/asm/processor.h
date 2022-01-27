@@ -57,7 +57,6 @@ struct thread_struct {
  */
 #define start_thread(_regs, _pc, _usp)					\
 do {									\
-	set_fs(USER_DS);           /* reads from user space */		\
 	(_regs)->pc = (_pc);						\
 	(_regs)->psw = (1<<20) | (1<<17) | (1<<16); /* PM / U / I = 1 */ \
 	(_regs)->usp = (_usp);						\
