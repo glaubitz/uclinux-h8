@@ -31,10 +31,6 @@ boot := arch/$(ARCH)/boot
 %.dtb %.dtb.S %.dtb.o: | scripts
 	$(Q)$(MAKE) $(build)=arch/$(ARCH)/boot/dts arch/$(ARCH)/boot/dts/$@
 
-PHONY += dtbs
-dtbs: scripts
-	$(Q)$(MAKE) $(build)=arch/$(ARCH)/boot/dts
-
 archmrproper:
 
 archclean:
