@@ -43,6 +43,7 @@
 #define EM_HEXAGON	164	/* QUALCOMM Hexagon */
 #define EM_NDS32	167	/* Andes Technology compact code size
 				   embedded RISC processor family */
+#define EM_RX		173	/* Renesas RX */
 #define EM_AARCH64	183	/* ARM 64 bit */
 #define EM_TILEPRO	188	/* Tilera TILEPro */
 #define EM_MICROBLAZE	189	/* Xilinx MicroBlaze */
