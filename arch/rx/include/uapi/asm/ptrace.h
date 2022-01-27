@@ -32,6 +32,5 @@ extern void show_regs(struct pt_regs *);
 
 #define GET_FP(regs) (0)
 #define SET_FP(regs, val) do {} while(0)
-#include <asm-generic/ptrace.h>
 
 #endif /* __ASM_RX_PTRACE_H__ */

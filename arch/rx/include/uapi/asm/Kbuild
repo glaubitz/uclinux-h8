@@ -1,5 +1,4 @@
 # UAPI Header export list
-include include/uapi/asm-generic/Kbuild.asm
 
 generic-y += auxvec.h
 generic-y += bpf_perf_event.h
@@ -27,4 +26,5 @@ generic-y += swab.h
 generic-y += termbits.h
 generic-y += termios.h
 generic-y += types.h
+generic-y += ucontext.h
 generic-y += unistd.h
