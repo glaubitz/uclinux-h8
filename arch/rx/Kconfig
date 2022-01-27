@@ -29,6 +29,8 @@ config RX
 	select TIMER_OF
 	select GENERIC_CPU_DEVICES
 	select GENERIC_IRQ_SHOW
+	select UACCESS_MEMCPY
+	select ARCH_HAS_BINFMT_FLAT
 
 config MMU
 	def_bool n
@@ -109,10 +111,10 @@ menu "Processor type and features"
 
 choice
 	prompt "Platform"
-	default RX_GDB_SIM
+	default RX_QEMU
 
-config RX_GDB_SIM
-	bool "GDB Simulator"
+config RX_QEMU
+	bool "QEMU virtual platform"
 	select CPU_RX62N
 	help
 	  GDB Simulator
@@ -161,29 +163,7 @@ config RX_ICUA
 config CPU_LITTLE_ENDIAN
        def_bool y
 
-choice
-	prompt "Kernel executes from"
-	---help---
-	  Choose the memory type that the kernel will be running in.
-
-config RAMKERNEL
-	bool "RAM"
-	help
-	  The kernel will be resident in RAM when running.
-
-config ROMKERNEL
-	bool "ROM"
-	help
-	  The kernel will be resident in FLASH/ROM when running.
-endchoice
-
 menu "memory map"
-config ROMSTART
-       depends on ROMKERNEL
-       hex "ROM start address"
-config ROMEND
-       depends on ROMKERNEL
-       hex "ROM end address"
 config RAMSTART
        hex "RAM start address"
 config RAMEND

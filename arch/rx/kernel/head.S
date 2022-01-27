@@ -15,21 +15,9 @@
 	.global	startup
 	.section	.head.text,"ax"
 startup:
-	mov.l	#CONFIG_INITIAL_STACK,r0
-#if defined(CONFIG_ROMKERNEL)
-	mov.l	#setup_bsc,r1
-	jsr	r1
-
-	/* copy rw data to ram */
-	mov.l	#__data_romtop,r2
-	mov.l	#_sdata,r1
-	mov.l	#_edata,r3
-	sub	r1,r3
-	smovf
-	sub	r4,r4
-#else
-	mov	r1,r4
-#endif
+	mov.l	r1,r0
+	/* r1 is FDT header */
+	mov	r1, r4
 	/* clear BSS */
 	mov	#_sbss,r1
 	mov	#_ebss,r3
@@ -37,22 +25,16 @@ startup:
 	shlr	#2,r3
 	mov	#0,r2
 	sstr.l
-	mov	r4,r1
-	mov	#rx_fdt_init,r2
-	jsr	r2
 	/* exception handler setup */
-#if defined(CONFIG_RAMKERNEL)
 	mov	#install_exception_entry,r1
 	jsr	r1
-#endif
+	mov.l	#rx_fdt_init, r2
+	mov	r4,r1
+	jsr	r2
 	/* start kernel */
 	mov	#init_thread_union, r1
 	add	#PAGE_SIZE, r1, r0
 	mov	#start_kernel, r1
 	jmp	r1
-
-	.weak	setup_bsc
-setup_bsc:	
-	rts
 
 	.end
