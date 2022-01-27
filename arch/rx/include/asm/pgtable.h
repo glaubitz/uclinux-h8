@@ -2,9 +2,7 @@
 #define __ASM_RX_PGTABLE_H__
 
 #include <asm-generic/pgtable-nopud.h>
-#include <asm-generic/pgtable.h>
 
-#define pgtable_cache_init() do {} while(0)
 void paging_init(void);
 
 #define PAGE_NONE		__pgprot(0)    /* these mean nothing to NO_MM */
@@ -37,5 +35,7 @@ static inline int pte_file(pte_t pte) { return 0; }
  */
 #define	VMALLOC_START	0
 #define	VMALLOC_END	0xffffffff
+
+#define arch_enter_lazy_cpu_mode()    do {} while (0)
 
 #endif

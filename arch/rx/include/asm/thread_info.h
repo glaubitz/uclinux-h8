@@ -20,12 +20,9 @@
  */
 struct thread_info {
 	struct task_struct *task;		/* main task structure */
-	struct exec_domain *exec_domain;	/* execution domain */
 	unsigned long	   flags;		/* low level flags */
 	int		   cpu;			/* cpu we're on */
 	int		   preempt_count;	/* 0 => preemptable, <0 => BUG */
-	mm_segment_t		addr_limit;	/* thread address space */
-	struct restart_block restart_block;
 };
 
 /*
@@ -37,10 +34,6 @@ struct thread_info {
 	.flags =	0,			\
 	.cpu =		0,			\
 	.preempt_count = INIT_PREEMPT_COUNT,	\
-	.addr_limit	= KERNEL_DS,		\
-	.restart_block	= {			\
-		.fn = do_no_restart_syscall,	\
-	},					\
 }
 
 /* how to get the thread information struct from C */
@@ -84,6 +77,7 @@ static inline struct thread_info *current_thread_info(void)
 #define TIF_SYSCALL_TRACEPOINT	9	/* for ftrace syscall instrumentation */
 #define TIF_SINGLESTEP		10	/* singlestepping */
 #define TIF_FREEZE		16	/* is freezing for suspend */
+#define TIF_NOTIFY_SIGNAL	17	/* signal notifications exist */
 
 /* as above, but as bit values */
 #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
@@ -97,6 +91,7 @@ static inline struct thread_info *current_thread_info(void)
 #define _TIF_SYSCALL_TRACEPOINT	(1<<TIF_SYSCALL_TRACEPOINT)
 #define _TIF_SINGLESTEP		(1<<TIF_SINGLESTEP)
 #define _TIF_FREEZE		(1<<TIF_FREEZE)
+#define _TIF_NOFITY_SIGNAL	(1<<TIF_NOTIFY_SIGNAL)
 
 /* work to do in syscall trace */
 #define _TIF_WORK_SYSCALL_MASK	(_TIF_SYSCALL_TRACE | _TIF_SINGLESTEP | \
