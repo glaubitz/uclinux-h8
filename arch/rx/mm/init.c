@@ -21,7 +21,7 @@
 #include <linux/init.h>
 #include <linux/highmem.h>
 #include <linux/pagemap.h>
-#include <linux/bootmem.h>
+#include <linux/memblock.h>
 #include <linux/gfp.h>
 
 #include <asm/setup.h>
@@ -30,31 +30,11 @@
 #include <asm/pgtable.h>
 #include <asm/sections.h>
 
-#undef DEBUG
-
 /*
- * BAD_PAGE is the page that is used for page faults when linux
- * is out-of-memory. Older versions of linux just did a
- * do_exit(), but using this instead means there is less risk
- * for a process dying in kernel mode, possibly leaving a inode
- * unused etc..
- *
- * BAD_PAGETABLE is the accompanying page-table: it is initialized
- * to point to BAD_PAGE entries.
- *
  * ZERO_PAGE is a special page that is used for zero-initialized
  * data and COW.
  */
-static unsigned long empty_bad_page_table;
-
-static unsigned long empty_bad_page;
-
 unsigned long empty_zero_page;
-
-extern unsigned long rom_length;
-
-extern unsigned long memory_start;
-extern unsigned long memory_end;
 
 /*
  * paging_init() continues the virtual memory environment setup which
@@ -68,40 +48,30 @@ void __init paging_init(void)
 	 * Make sure start_mem is page aligned,  otherwise bootmem and
 	 * page_alloc get different views og the world.
 	 */
-#ifdef DEBUG
 	unsigned long start_mem = PAGE_ALIGN(memory_start);
-#endif
 	unsigned long end_mem   = memory_end & PAGE_MASK;
 
-#ifdef DEBUG
-	printk ("start_mem is %#lx\nvirtual_end is %#lx\n",
+	pr_debug ("start_mem is %#lx\nvirtual_end is %#lx\n",
 		start_mem, end_mem);
-#endif
 
 	/*
 	 * Initialize the bad page table and bad page to point
 	 * to a couple of allocated pages.
 	 */
-	empty_bad_page_table = (unsigned long)alloc_bootmem_pages(PAGE_SIZE);
-	empty_bad_page = (unsigned long)alloc_bootmem_pages(PAGE_SIZE);
-	empty_zero_page = (unsigned long)alloc_bootmem_pages(PAGE_SIZE);
-	memset((void *)empty_zero_page, 0, PAGE_SIZE);
+	empty_zero_page = (unsigned long)memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+	if (!empty_zero_page)
+		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
+		      __func__, PAGE_SIZE, PAGE_SIZE);
 
-#ifdef DEBUG
-	printk ("before free_area_init\n");
-
-	printk ("free_area_init -> start_mem is %#lx\nvirtual_end is %#lx\n",
+	pr_debug ("before free_area_init\n");
+	pr_debug ("free_area_init -> start_mem is %#lx\nvirtual_end is %#lx\n",
 		start_mem, end_mem);
-#endif
 
 	{
-		unsigned long zones_size[MAX_NR_ZONES] = {0, };
+		unsigned long max_zone_pfn[MAX_NR_ZONES] = {0, };
 
-		zones_size[ZONE_NORMAL]  = (end_mem - PAGE_OFFSET) >> PAGE_SHIFT;
-#ifdef CONFIG_HIGHMEM
-		zones_size[ZONE_HIGHMEM] = 0;
-#endif
-		free_area_init(zones_size);
+		max_zone_pfn[ZONE_NORMAL] = max_low_pfn;
+		free_area_init(max_zone_pfn);
 	}
 }
 
@@ -113,9 +83,7 @@ void __init mem_init(void)
 	max_mapnr = MAP_NR(high_memory);
 
 	/* this will put all low memory onto the freelists */
-	free_all_bootmem();
-
-	mem_init_print_info(NULL);
+	memblock_free_all();
 }
 
 #ifdef CONFIG_BLK_DEV_INITRD
