@@ -27,23 +27,19 @@ asmlinkage long do_syscall_trace_enter(struct pt_regs *regs)
 		 */
 		ret = -1L;
 
-	if (unlikely(test_thread_flag(TIF_SYSCALL_TRACEPOINT)))
-		trace_sys_enter(regs, regs->r[8]);
-
-	if (unlikely(current->audit_context))
-		audit_syscall_entry(regs->r[1], regs->r[2], regs->r[3],
-				    regs->r[4], regs->r[5]);
+	audit_syscall_entry(regs->r[1], regs->r[2], regs->r[3],
+			    regs->r[4], regs->r[5]);
 
 	return ret ?: regs->r[1];
 }
 
 asmlinkage void syscall_trace_leave(struct pt_regs *regs)
 {
+	int step;
+
 	audit_syscall_exit(regs);
 
-	if (unlikely(test_thread_flag(TIF_SYSCALL_TRACEPOINT)))
-		trace_sys_exit(regs, regs->r[1]);
-
-	if (test_thread_flag(TIF_SYSCALL_TRACE))
-		tracehook_report_syscall_exit(regs, 0);
+	step = test_thread_flag(TIF_SINGLESTEP);
+	if (step || test_thread_flag(TIF_SYSCALL_TRACE))
+		tracehook_report_syscall_exit(regs, step);
 }

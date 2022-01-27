@@ -33,7 +33,7 @@ restore_sigcontext(struct sigcontext __user *sc,
 	unsigned int err = 0;
 
 	/* Always make any pending restarted system calls return -EINTR */
-	current_thread_info()->restart_block.fn = do_no_restart_syscall;
+	current->restart_block.fn = do_no_restart_syscall;
 
 #define COPY(x)		       err |= __get_user(regs->x, &sc->sc_##x)
 	COPY(r[0]); COPY(r[1]);
@@ -59,9 +59,9 @@ asmlinkage int sys_rt_sigreturn(void)
 	sigset_t set;
 	unsigned long r1;
 
-	if (!access_ok(VERIFY_READ, frame, sizeof(*frame)))
+	if (!access_ok(frame, sizeof(*frame)))
 		goto badframe;
-	if (raw_copy_from_user(&set, &frame->uc.uc_sigmask, sizeof(set)))
+	if (__copy_from_user(&set, &frame->uc.uc_sigmask, sizeof(set)))
 		goto badframe;
 
 	set_current_blocked(&set);
@@ -75,7 +75,7 @@ asmlinkage int sys_rt_sigreturn(void)
 	return r1;
 
 badframe:
-	force_sig(SIGSEGV, current);
+	force_sig(SIGSEGV);
 	return 0;
 }
 
@@ -132,7 +132,7 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 
 	frame = get_sigframe(ksig, regs->usp, sizeof(*frame));
 
-	if (!access_ok(VERIFY_WRITE, frame, sizeof(*frame)))
+	if (!access_ok(frame, sizeof(*frame)))
 		return -EFAULT;
 
 	if (ksig->ka.sa.sa_flags & SA_SIGINFO)
@@ -163,8 +163,6 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
 	regs->r[3] = (unsigned long)&frame->uc;
 	regs->pc = (unsigned long)ksig->ka.sa.sa_handler;
 
-	set_fs(USER_DS);
-
 	return 0 ;
 
 }
@@ -192,7 +190,7 @@ handle_restart(struct pt_regs *regs, struct k_sigaction *ka)
 			regs->r[1] = -EINTR;
 			break;
 		}
-		/* fallthrough */
+		fallthrough;
 	case -ERESTARTNOINTR:
 do_restart:
 		regs->pc -= 1;

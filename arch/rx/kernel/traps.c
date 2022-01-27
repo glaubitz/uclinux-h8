@@ -52,15 +52,13 @@ struct installed_exception {
 };
 
 static void do_trap(int signr, char *str, struct pt_regs *regs, 
-		    siginfo_t *info)
+		    kernel_siginfo_t *info)
 {
-	struct task_struct *tsk = current;
-
 	if (user_mode(regs)) {
 		if (info)
-			force_sig_info(signr, info, tsk);
+			force_sig_info(info);
 		else
-			force_sig(signr, tsk);
+			force_sig(signr);
 	} else {
 		die(str, regs);
 	}
@@ -76,7 +74,7 @@ static inline void conditional_sti(struct pt_regs *regs)
 #define DO_ERROR_INFO(trapnr, signr, str, name, sicode, siaddr)		\
 asmlinkage void do_##name(struct pt_regs *regs)			\
 {									\
-	siginfo_t info;							\
+	kernel_siginfo_t info;						\
 	info.si_signo = signr;						\
 	info.si_errno = 0;						\
 	info.si_code = sicode;						\
@@ -88,10 +86,14 @@ asmlinkage void do_##name(struct pt_regs *regs)			\
 	do_trap(signr, str, regs, &info);				\
 }
 
-DO_ERROR_INFO(20, SIGILL, "privileged exception", privileged_op, ILL_PRVOPC, regs->pc)
-DO_ERROR_INFO(21, SIGSEGV, "access exception", eaccess, SEGV_ACCERR, regs->pc)
-DO_ERROR_INFO(23, SIGILL, "invalid opcode", invalid_op, ILL_ILLOPC, regs->pc)
-DO_ERROR_INFO(48, SIGBUS, "BUS error", buserr, BUS_ADRERR, regs->pc)
+DO_ERROR_INFO(20, SIGILL, "privileged exception",
+	      privileged_op, ILL_PRVOPC, regs->pc)
+DO_ERROR_INFO(21, SIGSEGV, "access exception",
+	      eaccess, SEGV_ACCERR, regs->pc)
+DO_ERROR_INFO(23, SIGILL, "invalid opcode",
+	      invalid_op, ILL_ILLOPC, regs->pc)
+DO_ERROR_INFO(48, SIGBUS, "BUS error",
+	      buserr, BUS_ADRERR, regs->pc)
 
 static inline int fpsw_decode(void)
 {
@@ -111,7 +113,7 @@ static inline int fpsw_decode(void)
 
 asmlinkage void do_fpuerror(struct pt_regs *regs)
 {
-	siginfo_t info;
+	kernel_siginfo_t info;
 	info.si_signo = fpsw_decode();
 	info.si_errno = 0;
 	info.si_addr = (void __user *)regs->pc;

@@ -60,24 +60,26 @@ void machine_power_off(void)
 
 void show_regs(struct pt_regs * regs)
 {
-	printk("\n");
-	printk("Pid : %d, Comm: \t\t%s\n", task_pid_nr(current), current->comm);
-	printk("PC is at %pS\n", (void *)instruction_pointer(regs));
+	show_regs_print_info(KERN_DEFAULT);
+	pr_notice("\n");
+	pr_notice("Pid : %d, Comm: \t\t%s\n",
+		  task_pid_nr(current), current->comm);
+-       pr_notice("PC is at %pS\n", (void *)instruction_pointer(regs));
 
-	printk("PC  : %08lx SP  : %08lx PSW  : %08lx\n",
-	       regs->pc, regs->r[0], regs->psw);
-	printk("R1  : %08lx R2  : %08lx R3  : %08lx\n",
-	       regs->r[1],
-	       regs->r[2],regs->r[3]);
-	printk("R4  : %08lx R5  : %08lx R6  : %08lx R7  : %08lx\n",
-	       regs->r[4],regs->r[5],
-	       regs->r[6],regs->r[7]);
-	printk("R8  : %08lx R9  : %08lx R10 : %08lx R11 : %08lx\n",
-	       regs->r[8],regs->r[9],
-	       regs->r[10],regs->r[11]);
-	printk("R12 : %08lx R13 : %08lx R14 : %08lx R15 : %08lx\n",
-	       regs->r[12],regs->r[13],
-	       regs->r[14],regs->r[15]);
+	pr_notice("PC  : %08lx SP  : %08lx PSW  : %08lx\n",
+		  regs->pc, regs->r[0], regs->psw);
+	pr_notice("R1  : %08lx R2  : %08lx R3  : %08lx\n",
+		  regs->r[1],
+		  regs->r[2],regs->r[3]);
+	pr_notice("R4  : %08lx R5  : %08lx R6  : %08lx R7  : %08lx\n",
+		  regs->r[4],regs->r[5],
+		  regs->r[6],regs->r[7]);
+	pr_notice("R8  : %08lx R9  : %08lx R10 : %08lx R11 : %08lx\n",
+		  regs->r[8],regs->r[9],
+		  regs->r[10],regs->r[11]);
+	pr_notice("R12 : %08lx R13 : %08lx R14 : %08lx R15 : %08lx\n",
+		  regs->r[12],regs->r[13],
+		  regs->r[14],regs->r[15]);
 }
 
 asmlinkage void ret_from_fork(void);
@@ -89,7 +91,7 @@ void flush_thread(void)
 
 int copy_thread(unsigned long clone_flags,
                 unsigned long usp, unsigned long topstk,
-		 struct task_struct * p)
+		struct task_struct * p,  unsigned long tls)
 {
 	struct pt_regs *childregs = 
 		(struct pt_regs *) (THREAD_SIZE + task_stack_page(p)) - 1;
@@ -119,7 +121,7 @@ unsigned long get_wchan(struct task_struct *p)
 	unsigned long fp;
 	unsigned long stack_page;
 
-	if (!p || p == current || p->state == TASK_RUNNING)
+	if (!p || p == current || task_is_running(p))
 		return 0;
 
 	stack_page = (unsigned long)p;

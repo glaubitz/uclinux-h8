@@ -16,7 +16,6 @@
 #include <linux/errno.h>
 #include <linux/string.h>
 #include <linux/major.h>
-#include <linux/bootmem.h>
 #include <linux/seq_file.h>
 #include <linux/init.h>
 #include <linux/ioport.h>
@@ -31,64 +30,43 @@
 #include <asm/irq.h>
 #include <asm/pgtable.h>
 
-unsigned long rom_length;
 unsigned long memory_start;
 unsigned long memory_end;
+unsigned int rx_ram_pfn_base;
 
 #ifdef CONFIG_VT
 struct screen_info screen_info;
 #endif
 
-static struct resource code_resource = {
-	.name	= "Kernel code",
-};
 
-static struct resource data_resource = {
-	.name	= "Kernel data",
-};
-
-static struct resource bss_resource = {
-	.name	= "Kernel bss",
-};
-
-void __init rx_fdt_init(void *fdt)
+void __init rx_fdt_init(phys_addr_t dt_phys)
 {
-	char saved_command_line[512];
+	void *dt_virt;
 
-	*saved_command_line = 0;
-	if (fdt == (void *)-1) {
-		memcpy(saved_command_line, boot_command_line,
-		       sizeof(saved_command_line));
-		fdt = NULL;
-	}
-	if (!fdt)
-		fdt = __dtb_start;
+#ifdef CONFIG_USE_BUILTIN_DTB
+	dt_virt = __dtb_start;
+#else
+	dt_virt = phys_to_virt(dt_phys);
+#endif
 
-	early_init_dt_scan(fdt);
-	memblock_allow_resize();
-	if (*saved_command_line)
-		memcpy(boot_command_line, saved_command_line,
-		       sizeof(saved_command_line));
+	early_init_dt_scan(dt_virt);
 }
 
 static void __init bootmem_init(void)
 {
-	struct memblock_region *region;
-
 	memory_end = memory_start = 0;
 
 	/* Find main memory where is the kernel */
-	for_each_memblock(memory, region) {
-		memory_start = region->base;
-		memory_end = region->base + region->size;
-	}
+	memory_start = memblock_start_of_DRAM();
+	memory_end = memblock_end_of_DRAM();
 
 	if (!memory_end)
 		panic("No memory!");
 
 	/* setup bootmem globals (we use no_bootmem, but mm still depends on this) */
+	rx_ram_pfn_base = memory_start >> PAGE_SHIFT;
 	min_low_pfn = PFN_UP(memory_start);
-	max_low_pfn = PFN_DOWN(memblock_end_of_DRAM());
+	max_low_pfn = PFN_DOWN(memory_end);
 	max_pfn = max_low_pfn;
 
 	memblock_reserve(__pa(_stext), _end - _stext);
@@ -96,18 +74,13 @@ static void __init bootmem_init(void)
 	early_init_fdt_reserve_self();
 	early_init_fdt_scan_reserved_mem();
 
-	memblock_dump_all();
 }
 
 void __init setup_arch(char **cmdline_p)
 {
-	memblock_set_current_limit(CONFIG_RAMEND - 0x10000);
-	unflatten_and_copy_device_tree();
+	unflatten_device_tree();
 
-	init_mm.start_code = (unsigned long) &_stext;
-	init_mm.end_code = (unsigned long) &_etext;
-	init_mm.end_data = (unsigned long) &_edata;
-	init_mm.brk = 0; 
+	setup_initial_init_mm(_text, _etext, _edata, _end);
 
 	*cmdline_p = boot_command_line;
 
