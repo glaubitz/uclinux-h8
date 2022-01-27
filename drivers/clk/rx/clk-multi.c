@@ -116,7 +116,7 @@ static void __init rx_mul_clk_setup(struct device_node *node)
 	parent_name = of_clk_get_parent_name(node, 0);
 	init.name = clk_name;
 	init.ops = &pll_ops;
-	init.flags = CLK_IS_BASIC;
+	init.flags = 0;
 	init.parent_names = &parent_name;
 	init.num_parents = 1;
 	pll_clock->hw.init = &init;

@@ -172,5 +172,5 @@ free_clk:
 	clk_put(clk);
 }
 
-CLOCKSOURCE_OF_DECLARE(rx_tpu, "renesas,rx-tpu", rx_tpu_init);
-CLOCKSOURCE_OF_DECLARE(rx_mtu, "renesas,rx-mtu2", rx_mtu_init);
+TIMER_OF_DECLARE(rx_tpu, "renesas,rx-tpu", rx_tpu_init);
+TIMER_OF_DECLARE(rx_mtu, "renesas,rx-mtu2", rx_mtu_init);
