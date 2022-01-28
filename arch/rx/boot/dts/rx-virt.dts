@@ -1,0 +1,96 @@
+/dts-v1/;
+/ {
+        compatible = "gnu,gdbsim";
+        #address-cells = <1>;
+        #size-cells = <1>;
+	interrupt-parent = <&rxicu>;
+
+	chosen {
+		bootargs = "earlycon console=ttySC0";
+		stdout-path = &sci0;
+	};
+	aliases {
+		serial0 = &sci0;
+		serial1 = &sci1;
+	};
+
+	xclk: oscillator {
+		#clock-cells = <0>;
+		compatible = "fixed-clock";
+		clock-frequency = <12000000>;
+		clock-output-names = "xtal";
+	};
+	iclk: iclk {
+		compatible = "renesas,rx-mul-clock";
+		clocks = <&xclk>;
+		#clock-cells = <0>;
+		reg = <0x00080020 4>;
+		renesas,offset = <24>;
+		renesas,maxfreq = <100000000>;
+	};
+	pclk: pclk {
+		compatible = "renesas,rx-mul-clock";
+		clocks = <&xclk>;
+		#clock-cells = <0>;
+		reg = <0x00080020 4>;
+		renesas,offset = <8>;
+		renesas,maxfreq = <50000000>;
+	};
+	bclk: bclk {
+		compatible = "renesas,rx-mul-clock";
+		clocks = <&xclk>;
+		#clock-cells = <0>;
+		reg = <0x00080020 4>;
+		renesas,offset = <16>;
+		renesas,maxfreq = <50000000>;
+	};
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		cpu@0 {
+			compatible = "renesas,rx";
+			clock-frequency = <96000000>;
+			mem-cycle = <2>;
+		};
+	};
+	memory@01000000 {
+		device_type = "memory";
+		reg = <0x01000000 0x01000000>;
+	};
+
+	rxicu: interrupt-controller@87000 {
+		compatible = "renesas,rx-icu";
+		#interrupt-cells = <2>;
+		interrupt-controller;
+		reg = <0x00087000 0x600>;
+	};
+	cmt: timer@00088000 {
+		compatible = "renesas,rx-cmt";
+		reg = <0x00088000 0x70>;
+		clocks = <&pclk>;
+		clock-names = "fck";
+		interrupts = <28 0>;
+	};
+	tpu: timer@00088100 {
+		compatible = "renesas,rx-tpu";
+		reg = <0x00088100 0x70>;
+		clocks = <&pclk>;
+		clock-names = "fck";
+	};
+	sci0: serial@00088240 {
+		compatible = "renesas,sci";
+		reg = <0x00088240 8>;
+		interrupts = <214 0>, <215 0>, <216 0>, <0 0>, <0 0>, <217 0>;
+		clocks = <&pclk>;
+		clock-names = "sci_ick";
+	};
+
+	sci1: serial@00088248 {
+		compatible = "renesas,sci";
+		reg = <0x00088248 8>;
+		interrupts = <218 0>, <219 0>, <220 0>, <0 0>, <0 0>, <221 0>;
+		clocks = <&pclk>;
+		clock-names = "sci_ick";
+	};
+};
