@@ -136,10 +136,6 @@ config AP_RX64M
 	select CPU_RX64M
 endchoice
 
-config RX_BUILTIN_DTB
-        string "Builtin DTB"
-	default ""
-
 config CPU_RX610
        bool
        select RX_ICUA
