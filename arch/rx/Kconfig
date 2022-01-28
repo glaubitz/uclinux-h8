@@ -117,7 +117,7 @@ config RX_QEMU
 	bool "QEMU virtual platform"
 	select CPU_RX62N
 	help
-	  GDB Simulator
+	  QEMU RX virtual target
 
 config TKDN_RX62N
 	bool "TKDN-RX62N-BRD"
