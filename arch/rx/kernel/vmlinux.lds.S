@@ -6,11 +6,6 @@
 #define EXCEPTION_FIXED 0xffffff80
 
 RAMTOP = CONFIG_RAMSTART;
-RAMSIZE = CONFIG_RAMEND - CONFIG_RAMSTART;
-
-#if defined(CONFIG_RX_GDB_SIM)
-/*INPUT(romfs.o)*/
-#endif
 
 jiffies = jiffies_64;
 
@@ -52,7 +47,6 @@ SECTIONS
 	_ebss = .;		/* uClinux MTD sucks */
 	_end = . ;
 	_ramstart = .;
-	. = RAMTOP + RAMSIZE;
 	_ramend = .;
 	DISCARDS
 }

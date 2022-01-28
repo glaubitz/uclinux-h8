@@ -159,16 +159,13 @@ config RX_ICUA
 config CPU_LITTLE_ENDIAN
        def_bool y
 
-menu "memory map"
 config RAMSTART
-       hex "RAM start address"
-config RAMEND
-       hex "RAM end address"
-config INITIAL_STACK
-       hex "Initial stack address"
+       hex
+         default 0x01000000 if RX_QEMU
+
 config BOOT_LINK_OFFSET
        hex "Link offset of zImage"
-endmenu
+         default 0x00800000
 
 endmenu
 
