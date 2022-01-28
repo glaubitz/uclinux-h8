@@ -81,7 +81,7 @@ static inline void prepare_to_copy(struct task_struct *tsk)
  */
 #define thread_saved_pc(tsk)	(tsk->thread.pc)
 
-unsigned long get_wchan(struct task_struct *p);
+unsigned long __get_wchan(struct task_struct *p);
 void show_trace(struct task_struct *tsk, unsigned long *sp,
 		struct pt_regs *regs);
 #define	KSTK_EIP(tsk) (task_pt_regs(tsk)->pc)

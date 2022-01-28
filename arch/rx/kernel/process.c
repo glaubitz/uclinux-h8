@@ -114,7 +114,7 @@ int copy_thread(unsigned long clone_flags,
 	return 0;
 }
 
-unsigned long get_wchan(struct task_struct *p)
+unsigned long __get_wchan(struct task_struct *p)
 {
 	int count = 0;
 	unsigned long pc;
