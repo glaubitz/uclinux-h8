@@ -11,8 +11,8 @@
 #include <linux/of_irq.h>
 #include <asm/io.h>
 
-static void *ipr_base;
-static void *icr_base;
+static void __iomem *ipr_base;
+static void __iomem *icr_base;
 #define IPRA (ipr_base)
 #define IER  (icr_base + 2)
 #define ISR  (icr_base + 4)
